@@ -64,26 +64,26 @@ fn write_waypoint<W: std::io::Write>(
     writer: &mut Writer<W>,
     waypoint: &Waypoint,
 ) -> Result<(), CupError> {
-    let pics = if waypoint.pics.is_empty() {
+    let pics = if waypoint.pictures.is_empty() {
         String::new()
     } else {
-        waypoint.pics.join(";")
+        waypoint.pictures.join(";")
     };
 
     writer.write_record([
         &waypoint.name,
         &waypoint.code,
         &waypoint.country,
-        &format_latitude(waypoint.lat),
-        &format_longitude(waypoint.lon),
-        &waypoint.elev.to_string(),
+        &format_latitude(waypoint.latitude),
+        &format_longitude(waypoint.longitude),
+        &waypoint.elevation.to_string(),
         &(waypoint.style as u8).to_string(),
         &waypoint
-            .runway_dir
+            .runway_direction
             .map(|d| format!("{:03}", d))
             .unwrap_or_default(),
         &waypoint
-            .runway_len
+            .runway_length
             .as_ref()
             .map(ToString::to_string)
             .unwrap_or_default(),
@@ -92,8 +92,8 @@ fn write_waypoint<W: std::io::Write>(
             .as_ref()
             .map(ToString::to_string)
             .unwrap_or_default(),
-        &waypoint.freq,
-        &waypoint.desc,
+        &waypoint.frequency,
+        &waypoint.description,
         &waypoint.userdata,
         &pics,
     ])?;
@@ -119,10 +119,10 @@ fn format_longitude(lon: f64) -> String {
 
 fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<String, CupError> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
-    let pics = if waypoint.pics.is_empty() {
+    let pics = if waypoint.pictures.is_empty() {
         String::new()
     } else {
-        waypoint.pics.join(";")
+        waypoint.pictures.join(";")
     };
 
     // Create a CSV writer to properly format the waypoint data
@@ -134,16 +134,16 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
             &waypoint.name,
             &waypoint.code,
             &waypoint.country,
-            &format_latitude(waypoint.lat),
-            &format_longitude(waypoint.lon),
-            &waypoint.elev.to_string(),
+            &format_latitude(waypoint.latitude),
+            &format_longitude(waypoint.longitude),
+            &waypoint.elevation.to_string(),
             &(waypoint.style as u8).to_string(),
             &waypoint
-                .runway_dir
+                .runway_direction
                 .map(|d| format!("{:03}", d))
                 .unwrap_or_default(),
             &waypoint
-                .runway_len
+                .runway_length
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
@@ -152,8 +152,8 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
                 .as_ref()
                 .map(ToString::to_string)
                 .unwrap_or_default(),
-            &waypoint.freq,
-            &waypoint.desc,
+            &waypoint.frequency,
+            &waypoint.description,
             &waypoint.userdata,
             &pics,
         ])?;

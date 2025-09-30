@@ -433,13 +433,13 @@ Point=1,"Airport",AIRP,SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,30m,123.500,
     assert_eq!(waypoint.code, "AIRP");
     assert_eq!(waypoint.country, "SI");
     assert_eq!(waypoint.style, WaypointStyle::SolidAirfield);
-    assert_some_eq!(waypoint.runway_dir, 144);
-    assert_some!(&waypoint.runway_len);
+    assert_some_eq!(waypoint.runway_direction, 144);
+    assert_some!(&waypoint.runway_length);
     assert_some!(&waypoint.runway_width);
-    assert_eq!(&waypoint.freq, "123.500");
-    assert_eq!(&waypoint.desc, "Test Airport");
+    assert_eq!(&waypoint.frequency, "123.500");
+    assert_eq!(&waypoint.description, "Test Airport");
     assert_eq!(&waypoint.userdata, "User data");
-    assert_eq!(waypoint.pics, vec!["pic1.jpg", "pic2.jpg"]);
+    assert_eq!(waypoint.pictures, vec!["pic1.jpg", "pic2.jpg"]);
 }
 
 #[test]
@@ -508,6 +508,6 @@ Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
     assert_eq!(wp1.code, wp2.code);
     assert_eq!(wp1.country, wp2.country);
     assert_eq!(wp1.style, wp2.style);
-    assert!((wp1.lat - wp2.lat).abs() < 0.0001);
-    assert!((wp1.lon - wp2.lon).abs() < 0.0001);
+    assert!((wp1.latitude - wp2.latitude).abs() < 0.0001);
+    assert!((wp1.longitude - wp2.longitude).abs() < 0.0001);
 }

@@ -16,19 +16,19 @@ fn test_parse_basic_waypoint() {
         name: "Cross Hands",
         code: "CSS",
         country: "UK",
-        lat: 51.796816666666665,
-        lon: -4.083383333333333,
-        elev: Feet(
+        latitude: 51.796816666666665,
+        longitude: -4.083383333333333,
+        elevation: Feet(
             525.0,
         ),
         style: Waypoint,
-        runway_dir: None,
-        runway_len: None,
+        runway_direction: None,
+        runway_length: None,
         runway_width: None,
-        freq: "Turn Point, A48/A476, Between Cross Hands and Gorslas, 9 NMl ESE of Camarthen.",
-        desc: "",
+        frequency: "Turn Point, A48/A476, Between Cross Hands and Gorslas, 9 NMl ESE of Camarthen.",
+        description: "",
         userdata: "",
-        pics: [],
+        pictures: [],
     }
     "#);
 }
@@ -46,25 +46,25 @@ fn test_parse_airport() {
         name: "Lesce",
         code: "LJBL",
         country: "SI",
-        lat: 46.356316666666665,
-        lon: 14.17445,
-        elev: Meters(
+        latitude: 46.356316666666665,
+        longitude: 14.17445,
+        elevation: Meters(
             504.0,
         ),
         style: SolidAirfield,
-        runway_dir: Some(
+        runway_direction: Some(
             144,
         ),
-        runway_len: Some(
+        runway_length: Some(
             Meters(
                 1130.0,
             ),
         ),
         runway_width: None,
-        freq: "123.500",
-        desc: "Home Airfield",
+        frequency: "123.500",
+        description: "Home Airfield",
         userdata: "",
-        pics: [],
+        pictures: [],
     }
     "#);
 }
@@ -82,25 +82,25 @@ fn test_parse_outlanding() {
         name: "Aiton",
         code: "O23L",
         country: "FR",
-        lat: 45.558616666666666,
-        lon: 6.234166666666667,
-        elev: Meters(
+        latitude: 45.558616666666666,
+        longitude: 6.234166666666667,
+        elevation: Meters(
             299.9,
         ),
         style: Outlanding,
-        runway_dir: Some(
+        runway_direction: Some(
             110,
         ),
-        runway_len: Some(
+        runway_length: Some(
             Meters(
                 300.0,
             ),
         ),
         runway_width: None,
-        freq: "Page 222: O23L Large flat area. High crops. Sudden wind changes. Power lines N/S. S of road marked fields",
-        desc: "",
+        frequency: "Page 222: O23L Large flat area. High crops. Sudden wind changes. Power lines N/S. S of road marked fields",
+        description: "",
         userdata: "",
-        pics: [],
+        pictures: [],
     }
     "#);
 }
@@ -216,7 +216,7 @@ fn test_latitude_zero() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lat, 0.0);
+    assert_eq!(cup.waypoints[0].latitude, 0.0);
 }
 
 #[test]
@@ -226,7 +226,7 @@ fn test_latitude_90_degrees() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lat, 90.0);
+    assert_eq!(cup.waypoints[0].latitude, 90.0);
 }
 
 #[test]
@@ -236,7 +236,7 @@ fn test_latitude_90_degrees_south() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lat, -90.0);
+    assert_eq!(cup.waypoints[0].latitude, -90.0);
 }
 
 #[test]
@@ -246,7 +246,7 @@ fn test_longitude_zero() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lon, 0.0);
+    assert_eq!(cup.waypoints[0].longitude, 0.0);
 }
 
 #[test]
@@ -256,7 +256,7 @@ fn test_longitude_180_degrees() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lon, 180.0);
+    assert_eq!(cup.waypoints[0].longitude, 180.0);
 }
 
 #[test]
@@ -266,7 +266,7 @@ fn test_longitude_180_degrees_west() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].lon, -180.0);
+    assert_eq!(cup.waypoints[0].longitude, -180.0);
 }
 
 #[test]
@@ -276,7 +276,7 @@ fn test_elevation_no_unit_defaults_to_meters() {
 "#;
 
     let cup = assert_ok!(CupFile::from_str(input));
-    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(500.0));
+    assert_matches!(&cup.waypoints[0].elevation, Elevation::Meters(500.0));
 }
 
 #[test]
@@ -286,7 +286,7 @@ fn test_elevation_decimal_separator_must_be_point() {
 "#;
 
     let cup = assert_ok!(CupFile::from_str(input));
-    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(v) if (v - 504.5).abs() < 0.01);
+    assert_matches!(&cup.waypoints[0].elevation, Elevation::Meters(v) if (v - 504.5).abs() < 0.01);
 }
 
 #[test]
@@ -317,9 +317,9 @@ fn test_mixed_elevation_units_in_same_file() {
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 3);
-    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(500.0));
-    assert_matches!(&cup.waypoints[1].elev, Elevation::Feet(1640.0));
-    assert_matches!(&cup.waypoints[2].elev, Elevation::Meters(300.0));
+    assert_matches!(&cup.waypoints[0].elevation, Elevation::Meters(500.0));
+    assert_matches!(&cup.waypoints[1].elevation, Elevation::Feet(1640.0));
+    assert_matches!(&cup.waypoints[2].elevation, Elevation::Meters(300.0));
 }
 
 #[test]
@@ -365,7 +365,7 @@ fn test_runway_direction_format() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].runway_dir, Some(144));
+    assert_eq!(cup.waypoints[0].runway_direction, Some(144));
 }
 
 #[test]
@@ -375,7 +375,7 @@ fn test_runway_direction_000() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].runway_dir, Some(0));
+    assert_eq!(cup.waypoints[0].runway_direction, Some(0));
 }
 
 #[test]
@@ -385,7 +385,7 @@ fn test_runway_direction_359() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].runway_dir, Some(359));
+    assert_eq!(cup.waypoints[0].runway_direction, Some(359));
 }
 
 #[test]
@@ -405,7 +405,7 @@ fn test_runway_length_no_unit_defaults_to_meters() {
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_matches!(
-        &cup.waypoints[0].runway_len,
+        &cup.waypoints[0].runway_length,
         Some(RunwayDimension::Meters(1130.0))
     );
 }
@@ -418,7 +418,7 @@ fn test_runway_length_nautical_miles() {
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_matches!(
-        &cup.waypoints[0].runway_len,
+        &cup.waypoints[0].runway_length,
         Some(RunwayDimension::NauticalMiles(v)) if (v - 1.5).abs() < 0.01
     );
 }
@@ -431,7 +431,7 @@ fn test_runway_length_statute_miles() {
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_matches!(
-        &cup.waypoints[0].runway_len,
+        &cup.waypoints[0].runway_length,
         Some(RunwayDimension::StatuteMiles(v)) if (v - 2.0).abs() < 0.01
     );
 }
@@ -461,7 +461,7 @@ fn test_frequency_format() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(&cup.waypoints[0].freq, "123.500");
+    assert_eq!(&cup.waypoints[0].frequency, "123.500");
 }
 
 #[test]
@@ -471,7 +471,7 @@ fn test_frequency_in_quotes() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(&cup.waypoints[0].freq, "123.500");
+    assert_eq!(&cup.waypoints[0].frequency, "123.500");
 }
 
 #[test]
@@ -485,7 +485,7 @@ fn test_description_unlimited_length() {
     );
 
     let cup = CupFile::from_str(&input).unwrap();
-    assert_eq!(&cup.waypoints[0].desc, &long_desc);
+    assert_eq!(&cup.waypoints[0].description, &long_desc);
 }
 
 #[test]
@@ -496,7 +496,7 @@ fn test_pictures_semicolon_separated() {
 
     let cup = CupFile::from_str(input).unwrap();
     assert_eq!(
-        cup.waypoints[0].pics,
+        cup.waypoints[0].pictures,
         vec!["pic1.jpg", "pic2.jpg", "pic3.jpg"]
     );
 }
@@ -508,5 +508,5 @@ fn test_pictures_in_quotes_when_multiple() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].pics, vec!["pic1.jpg", "pic2.jpg"]);
+    assert_eq!(cup.waypoints[0].pictures, vec!["pic1.jpg", "pic2.jpg"]);
 }

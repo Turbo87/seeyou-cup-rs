@@ -232,20 +232,20 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         .to_string();
 
     let lat_str = record.get(column_map.lat).ok_or("Missing 'lat' field")?;
-    let lat = parse_latitude(lat_str)?;
+    let latitude = parse_latitude(lat_str)?;
 
     let lon_str = record.get(column_map.lon).ok_or("Missing 'lon' field")?;
-    let lon = parse_longitude(lon_str)?;
+    let longitude = parse_longitude(lon_str)?;
 
     let elev_str = record.get(column_map.elev).ok_or("Missing 'elev' field")?;
-    let elev = elev_str.parse()?;
+    let elevation = elev_str.parse()?;
 
     let style_str = record
         .get(column_map.style)
         .ok_or("Missing 'style' field")?;
     let style = parse_waypoint_style(style_str)?;
 
-    let runway_dir = column_map
+    let runway_direction = column_map
         .rwdir
         .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
@@ -255,7 +255,7 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         })
         .transpose()?;
 
-    let runway_len = column_map
+    let runway_length = column_map
         .rwlen
         .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
@@ -269,13 +269,13 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         .map(|s| s.parse())
         .transpose()?;
 
-    let freq = column_map
+    let frequency = column_map
         .freq
         .and_then(|idx| record.get(idx))
         .unwrap_or_default()
         .to_string();
 
-    let desc = column_map
+    let description = column_map
         .desc
         .and_then(|idx| record.get(idx))
         .unwrap_or_default()
@@ -287,7 +287,7 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         .unwrap_or_default()
         .to_string();
 
-    let pics = column_map
+    let pictures = column_map
         .pics
         .and_then(|idx| record.get(idx))
         .map(|s| {
@@ -302,17 +302,17 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         name,
         code,
         country,
-        lat,
-        lon,
-        elev,
+        latitude,
+        longitude,
+        elevation,
         style,
-        runway_dir,
-        runway_len,
+        runway_direction,
+        runway_length,
         runway_width,
-        freq,
-        desc,
+        frequency,
+        description,
         userdata,
-        pics,
+        pictures,
     })
 }
 
@@ -480,9 +480,7 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
                 "TaskTime" => options.task_time = Some(value.to_string()),
                 "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
                 "NearDis" => options.near_dis = Some(value.parse().map_err(CupError::Parse)?),
-                "NearAlt" => {
-                    options.near_alt = Some(value.parse().map_err(CupError::Parse)?)
-                }
+                "NearAlt" => options.near_alt = Some(value.parse().map_err(CupError::Parse)?),
                 "MinDis" => options.min_dis = Some(value.eq_ignore_ascii_case("true")),
                 "RandomOrder" => options.random_order = Some(value.eq_ignore_ascii_case("true")),
                 "MaxPts" => options.max_pts = value.parse().ok(),

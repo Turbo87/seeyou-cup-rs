@@ -30,24 +30,24 @@ fn main() {
         if !wp.country.is_empty() {
             println!("   Country: {}", wp.country);
         }
-        println!("   Position: {:.6}°, {:.6}°", wp.lat, wp.lon);
-        println!("   Elevation: {}", format_elevation(&wp.elev));
+        println!("   Position: {:.6}°, {:.6}°", wp.latitude, wp.longitude);
+        println!("   Elevation: {}", format_elevation(&wp.elevation));
         println!("   Style: {:?}", wp.style);
 
-        if let Some(dir) = wp.runway_dir {
+        if let Some(dir) = wp.runway_direction {
             println!("   Runway direction: {}°", dir);
         }
-        if let Some(ref len) = wp.runway_len {
+        if let Some(ref len) = wp.runway_length {
             println!("   Runway length: {}", format_runway_dimension(len));
         }
         if let Some(ref width) = wp.runway_width {
             println!("   Runway width: {}", format_runway_dimension(width));
         }
-        if !wp.freq.is_empty() {
-            println!("   Frequency: {}", wp.freq);
+        if !wp.frequency.is_empty() {
+            println!("   Frequency: {}", wp.frequency);
         }
-        if !wp.desc.is_empty() {
-            println!("   Description: {}", wp.desc);
+        if !wp.description.is_empty() {
+            println!("   Description: {}", wp.description);
         }
 
         println!();
