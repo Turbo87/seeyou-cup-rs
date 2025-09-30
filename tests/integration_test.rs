@@ -1,4 +1,5 @@
-use seeyou::{CupFile, Elevation, WaypointStyle};
+use seeyou::{CupEncoding, CupFile, Elevation, WaypointStyle};
+use std::path::Path;
 
 #[test]
 fn test_parse_basic_waypoint() {
@@ -110,4 +111,73 @@ fn parse_lon(s: &str) -> f64 {
 "#, s);
     let cup = CupFile::from_str(&input).unwrap();
     cup.waypoints[0].lon
+}
+
+#[test]
+fn test_fixture_schwarzwald() {
+    let path = Path::new("tests/fixtures/2018_schwarzwald_landefelder.cup");
+    let cup = CupFile::from_path(path).unwrap();
+
+    assert_eq!(cup.waypoints.len(), 64);
+    assert_eq!(cup.tasks.len(), 0);
+
+    assert_eq!(cup.waypoints[0].name, "LF_Aichelberg");
+    assert_eq!(cup.waypoints[0].code, "NL A07");
+    assert_eq!(cup.waypoints[0].country, "de");
+}
+
+#[test]
+fn test_fixture_hotzenwaldwettbewerb() {
+    let path = Path::new("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup");
+    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252).unwrap();
+
+    assert_eq!(cup.waypoints.len(), 252);
+    assert_eq!(cup.tasks.len(), 0);
+
+    assert_eq!(cup.waypoints[0].name, "000_Huetten Hotz");
+    assert_eq!(cup.waypoints[0].code, "0");
+}
+
+#[test]
+fn test_fixture_ec25() {
+    let path = Path::new("tests/fixtures/EC25.cup");
+    let cup = CupFile::from_path(path).unwrap();
+
+    assert_eq!(cup.waypoints.len(), 221);
+    assert_eq!(cup.tasks.len(), 0);
+
+    assert_eq!(cup.waypoints[0].name, "001 Aachen AB Kreuz");
+    assert_eq!(cup.waypoints[0].code, "001ACKRE");
+}
+
+#[test]
+fn test_fixture_with_task() {
+    let path = Path::new("tests/fixtures/709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup");
+    let cup = CupFile::from_path(path).unwrap();
+
+    assert_eq!(cup.waypoints.len(), 4);
+    assert_eq!(cup.tasks.len(), 1);
+
+    let task = &cup.tasks[0];
+    assert_eq!(task.description.as_deref(), Some("709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"));
+    assert_eq!(task.waypoints.len(), 5);
+}
+
+#[test]
+fn test_all_fixtures_parse() {
+    let fixtures = [
+        ("tests/fixtures/2018_schwarzwald_landefelder.cup", CupEncoding::Utf8),
+        ("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup", CupEncoding::Windows1252),
+        ("tests/fixtures/709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup", CupEncoding::Utf8),
+        ("tests/fixtures/EC25.cup", CupEncoding::Utf8),
+    ];
+
+    for (fixture, encoding) in &fixtures {
+        let path = Path::new(fixture);
+        let result = CupFile::from_path_with_encoding(path, *encoding);
+        assert!(result.is_ok(), "Failed to parse {}: {:?}", fixture, result.err());
+
+        let cup = result.unwrap();
+        assert!(!cup.waypoints.is_empty(), "No waypoints in {}", fixture);
+    }
 }

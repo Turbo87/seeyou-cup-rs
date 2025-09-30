@@ -1,0 +1,13 @@
+name,code,country,lat,lon,elev,style,rwdir,rwlen,freq,desc
+"Aachen Stolberg TV",,,5046.725N,00614.618E,287m,1,,,,
+"Wendepunkt",,,4910.471N,00645.292E,280m,1,,,,
+"Helmstadter Berg",,,4946.595N,00943.634E,347m,1,,,,
+"Linnich Station",,,5059.067N,00616.562E,61m,1,,,,
+-----Related Tasks-----
+"709 km · Dreieck · DMSt · Aachen Stolberg TV_282915","","Aachen Stolberg TV","Wendepunkt","Helmstadter Berg","Linnich Station","Aachen Stolberg TV",""
+Options
+ObsZone=0,Style=2,R1=1000m,A1=180
+ObsZone=1,Style=1,R1=20000m,A1=45
+ObsZone=2,Style=1,R1=20000m,A1=45
+ObsZone=3,Style=1,R1=20000m,A1=45
+ObsZone=4,Style=3,R1=1000m,A1=180
