@@ -16,6 +16,7 @@ pub enum CupEncoding {
     Windows1252,
 }
 
+#[derive(Debug)]
 pub struct CupFile {
     pub waypoints: Vec<Waypoint>,
     pub tasks: Vec<Task>,

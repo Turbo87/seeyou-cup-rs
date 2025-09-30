@@ -1,3 +1,4 @@
+#[derive(Debug)]
 pub struct Waypoint {
     pub name: String,
     pub code: String,
@@ -128,6 +129,7 @@ impl WaypointStyle {
     }
 }
 
+#[derive(Debug)]
 pub struct Task {
     pub description: Option<String>,
     pub waypoints: Vec<TaskPoint>,
@@ -136,11 +138,13 @@ pub struct Task {
     pub multiple_starts: Vec<String>,
 }
 
+#[derive(Debug)]
 pub enum TaskPoint {
     Reference(String),
     Inline(Waypoint),
 }
 
+#[derive(Debug)]
 pub struct TaskOptions {
     pub no_start: Option<String>,
     pub task_time: Option<String>,
@@ -155,6 +159,7 @@ pub struct TaskOptions {
     pub bonus: Option<f64>,
 }
 
+#[derive(Debug)]
 pub struct ObservationZone {
     pub index: u32,
     pub style: ObsZoneStyle,
