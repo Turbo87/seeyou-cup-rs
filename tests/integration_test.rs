@@ -1,3 +1,4 @@
+use claims::{assert_ok, assert_some_eq};
 use seeyou::{CupEncoding, CupFile};
 use std::path::Path;
 
@@ -10,13 +11,13 @@ fn test_parse_task() {
 "Test Task","LJBL","WP1","LJBL"
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
+    let cup = assert_ok!(CupFile::from_str(&input));
 
     assert_eq!(cup.waypoints.len(), 2);
     assert_eq!(cup.tasks.len(), 1);
 
     let task = &cup.tasks[0];
-    assert_eq!(task.description, Some("Test Task".to_string()));
+    assert_some_eq!(&task.description, "Test Task");
     assert_eq!(task.waypoints.len(), 3);
 }
 
@@ -26,9 +27,9 @@ fn test_roundtrip() {
 "Lesce","LJBL",SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,,123.500,"Home Airfield"
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    let output = cup.to_string().unwrap();
-    let cup2 = CupFile::from_str(&output).unwrap();
+    let cup = assert_ok!(CupFile::from_str(&input));
+    let output = assert_ok!(cup.to_string());
+    let cup2 = assert_ok!(CupFile::from_str(&output));
 
     assert_eq!(cup.waypoints.len(), cup2.waypoints.len());
     assert_eq!(cup.waypoints[0].name, cup2.waypoints[0].name);
@@ -54,7 +55,7 @@ fn parse_lat(s: &str) -> f64 {
 "#,
         s
     );
-    let cup = CupFile::from_str(&input).unwrap();
+    let cup = assert_ok!(CupFile::from_str(&input));
     cup.waypoints[0].lat
 }
 
@@ -65,14 +66,14 @@ fn parse_lon(s: &str) -> f64 {
 "#,
         s
     );
-    let cup = CupFile::from_str(&input).unwrap();
+    let cup = assert_ok!(CupFile::from_str(&input));
     cup.waypoints[0].lon
 }
 
 #[test]
 fn test_fixture_schwarzwald() {
     let path = Path::new("tests/fixtures/2018_schwarzwald_landefelder.cup");
-    let cup = CupFile::from_path(path).unwrap();
+    let cup = assert_ok!(CupFile::from_path(path));
 
     assert_eq!(cup.waypoints.len(), 64);
     assert_eq!(cup.tasks.len(), 0);
@@ -85,7 +86,8 @@ fn test_fixture_schwarzwald() {
 #[test]
 fn test_fixture_hotzenwaldwettbewerb() {
     let path = Path::new("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup");
-    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252).unwrap();
+    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252);
+    let cup = assert_ok!(cup);
 
     assert_eq!(cup.waypoints.len(), 252);
     assert_eq!(cup.tasks.len(), 0);
@@ -97,7 +99,7 @@ fn test_fixture_hotzenwaldwettbewerb() {
 #[test]
 fn test_fixture_ec25() {
     let path = Path::new("tests/fixtures/EC25.cup");
-    let cup = CupFile::from_path(path).unwrap();
+    let cup = assert_ok!(CupFile::from_path(path));
 
     assert_eq!(cup.waypoints.len(), 221);
     assert_eq!(cup.tasks.len(), 0);
@@ -109,15 +111,23 @@ fn test_fixture_ec25() {
 #[test]
 fn test_fixture_with_task() {
     let path = Path::new("tests/fixtures/709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup");
-    let cup = CupFile::from_path(path).unwrap();
+    let cup = assert_ok!(CupFile::from_path(path));
 
     assert_eq!(cup.waypoints.len(), 4);
     assert_eq!(cup.tasks.len(), 1);
 
     let task = &cup.tasks[0];
-    assert_eq!(
-        task.description.as_deref(),
-        Some("709 km · Dreieck · DMSt · Aachen Stolberg TV_282915")
+    assert_some_eq!(
+        &task.description,
+        "709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"
     );
     assert_eq!(task.waypoints.len(), 5);
+}
+#[test]
+fn test_fixture_windows1252() {
+    let path = Path::new("tests/fixtures/2018_schwarzwald_landefelder.cup");
+    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252);
+    let cup = assert_ok!(cup);
+
+    assert!(!cup.waypoints.is_empty());
 }

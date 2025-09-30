@@ -1,3 +1,4 @@
+use claims::{assert_err, assert_matches, assert_ok, assert_some, assert_some_eq};
 use seeyou::{CupFile, Elevation, RunwayDimension, WaypointStyle};
 
 #[test]
@@ -12,7 +13,7 @@ fn test_parse_basic_waypoint() {
     assert_eq!(cup.waypoints[0].name, "Cross Hands");
     assert_eq!(cup.waypoints[0].code, "CSS");
     assert_eq!(cup.waypoints[0].country, "UK");
-    assert!(matches!(cup.waypoints[0].elev, Elevation::Feet(_)));
+    assert_matches!(&cup.waypoints[0].elev, Elevation::Feet(_));
     assert_eq!(cup.waypoints[0].style, WaypointStyle::Waypoint);
 }
 
@@ -29,11 +30,11 @@ fn test_parse_airport() {
     assert_eq!(wp.name, "Lesce");
     assert_eq!(wp.code, "LJBL");
     assert_eq!(wp.country, "SI");
-    assert!(matches!(wp.elev, Elevation::Meters(_)));
+    assert_matches!(&wp.elev, Elevation::Meters(_));
     assert_eq!(wp.style, WaypointStyle::SolidAirfield);
-    assert_eq!(wp.runway_dir, Some(144));
-    assert!(wp.runway_len.is_some());
-    assert_eq!(wp.freq, Some("123.500".to_string()));
+    assert_some_eq!(wp.runway_dir, 144);
+    assert_some!(&wp.runway_len);
+    assert_some_eq!(&wp.freq, "123.500");
 }
 
 #[test]
@@ -56,8 +57,7 @@ fn test_empty_name_should_error() {
 "",CSS,UK,5147.809N,00405.003W,525ft,1
 "#;
 
-    let result = CupFile::from_str(input);
-    assert!(result.is_err(), "Empty name should cause an error");
+    assert_err!(CupFile::from_str(input));
 }
 
 #[test]
@@ -66,8 +66,7 @@ fn test_invalid_latitude_too_short() {
 "Test",T,XX,5147.8N,00405.003W,0m,1
 "#;
 
-    let result = CupFile::from_str(input);
-    assert!(result.is_err(), "Latitude too short should cause an error");
+    assert_err!(CupFile::from_str(input));
 }
 
 #[test]
@@ -76,8 +75,7 @@ fn test_invalid_latitude_too_long() {
 "Test",T,XX,51247.809N,00405.003W,0m,1
 "#;
 
-    let result = CupFile::from_str(input);
-    assert!(result.is_err(), "Latitude too long should cause an error");
+    assert_err!(CupFile::from_str(input));
 }
 
 #[test]
@@ -86,8 +84,7 @@ fn test_invalid_longitude_too_short() {
 "Test",T,XX,5147.809N,0405.0W,0m,1
 "#;
 
-    let result = CupFile::from_str(input);
-    assert!(result.is_err(), "Longitude too short should cause an error");
+    assert_err!(CupFile::from_str(input));
 }
 
 #[test]
@@ -96,8 +93,7 @@ fn test_invalid_longitude_too_long() {
 "Test",T,XX,5147.809N,000405.003W,0m,1
 "#;
 
-    let result = CupFile::from_str(input);
-    assert!(result.is_err(), "Longitude too long should cause an error");
+    assert_err!(CupFile::from_str(input));
 }
 
 #[test]
@@ -166,8 +162,8 @@ fn test_elevation_no_unit_defaults_to_meters() {
 "Test",T,XX,5147.809N,00405.003W,500,1
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    assert!(matches!(cup.waypoints[0].elev, Elevation::Meters(500.0)));
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(500.0));
 }
 
 #[test]
@@ -176,8 +172,8 @@ fn test_elevation_decimal_separator_must_be_point() {
 "Test",T,XX,5147.809N,00405.003W,504.5m,1
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    assert!(matches!(cup.waypoints[0].elev, Elevation::Meters(v) if (v - 504.5).abs() < 0.01));
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(v) if (v - 504.5).abs() < 0.01);
 }
 
 #[test]
@@ -186,7 +182,7 @@ fn test_invalid_waypoint_style_defaults_to_unknown() {
 "Test",T,XX,5147.809N,00405.003W,0m,99
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
+    let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].style, WaypointStyle::Unknown);
 }
 
@@ -196,7 +192,7 @@ fn test_waypoint_style_greater_than_21_defaults_to_unknown() {
 "Test",T,XX,5147.809N,00405.003W,0m,25
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
+    let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].style, WaypointStyle::Unknown);
 }
 
@@ -252,11 +248,11 @@ fn test_runway_length_no_unit_defaults_to_meters() {
 "Test",LJBL,SI,4621.379N,01410.467E,504.0m,5,144,1130
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    assert!(matches!(
-        cup.waypoints[0].runway_len,
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_matches!(
+        &cup.waypoints[0].runway_len,
         Some(RunwayDimension::Meters(1130.0))
-    ));
+    );
 }
 
 #[test]
@@ -265,11 +261,11 @@ fn test_runway_length_nautical_miles() {
 "Test",LJBL,SI,4621.379N,01410.467E,504.0m,5,144,1.5nm
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    assert!(matches!(
-        cup.waypoints[0].runway_len,
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_matches!(
+        &cup.waypoints[0].runway_len,
         Some(RunwayDimension::NauticalMiles(v)) if (v - 1.5).abs() < 0.01
-    ));
+    );
 }
 
 #[test]
@@ -278,11 +274,11 @@ fn test_runway_length_statute_miles() {
 "Test",LJBL,SI,4621.379N,01410.467E,504.0m,5,144,2.0ml
 "#;
 
-    let cup = CupFile::from_str(input).unwrap();
-    assert!(matches!(
-        cup.waypoints[0].runway_len,
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_matches!(
+        &cup.waypoints[0].runway_len,
         Some(RunwayDimension::StatuteMiles(v)) if (v - 2.0).abs() < 0.01
-    ));
+    );
 }
 
 #[test]
@@ -292,7 +288,7 @@ fn test_frequency_format() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].freq, Some("123.500".to_string()));
+    assert_some_eq!(&cup.waypoints[0].freq, "123.500");
 }
 
 #[test]
@@ -302,7 +298,7 @@ fn test_frequency_in_quotes() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_eq!(cup.waypoints[0].freq, Some("123.500".to_string()));
+    assert_some_eq!(&cup.waypoints[0].freq, "123.500");
 }
 
 #[test]
@@ -316,7 +312,7 @@ fn test_description_unlimited_length() {
     );
 
     let cup = CupFile::from_str(&input).unwrap();
-    assert_eq!(cup.waypoints[0].desc, Some(long_desc));
+    assert_some_eq!(&cup.waypoints[0].desc, &long_desc);
 }
 
 #[test]
