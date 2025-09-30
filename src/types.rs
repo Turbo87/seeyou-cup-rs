@@ -66,6 +66,16 @@ impl RunwayDimension {
     }
 }
 
+impl Display for RunwayDimension {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            RunwayDimension::Meters(m) => write!(f, "{}m", m),
+            RunwayDimension::NauticalMiles(nm) => write!(f, "{}nm", nm),
+            RunwayDimension::StatuteMiles(mi) => write!(f, "{}ml", mi),
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum Distance {
     Meters(f64),

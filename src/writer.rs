@@ -85,12 +85,12 @@ fn write_waypoint<W: std::io::Write>(
         &waypoint
             .runway_len
             .as_ref()
-            .map(format_runway_dimension)
+            .map(ToString::to_string)
             .unwrap_or_default(),
         &waypoint
             .runway_width
             .as_ref()
-            .map(format_runway_dimension)
+            .map(ToString::to_string)
             .unwrap_or_default(),
         &waypoint.freq,
         &waypoint.desc,
@@ -115,14 +115,6 @@ fn format_longitude(lon: f64) -> String {
     let degrees = abs_lon.floor() as u32;
     let minutes = (abs_lon - degrees as f64) * 60.0;
     format!("{:03}{:06.3}{}", degrees, minutes, hemisphere)
-}
-
-fn format_runway_dimension(dim: &RunwayDimension) -> String {
-    match dim {
-        RunwayDimension::Meters(m) => format!("{}m", m),
-        RunwayDimension::NauticalMiles(nm) => format!("{}nm", nm),
-        RunwayDimension::StatuteMiles(mi) => format!("{}ml", mi),
-    }
 }
 
 fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<String, CupError> {
@@ -153,12 +145,12 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
             &waypoint
                 .runway_len
                 .as_ref()
-                .map(format_runway_dimension)
+                .map(ToString::to_string)
                 .unwrap_or_default(),
             &waypoint
                 .runway_width
                 .as_ref()
-                .map(format_runway_dimension)
+                .map(ToString::to_string)
                 .unwrap_or_default(),
             &waypoint.freq,
             &waypoint.desc,
@@ -231,13 +223,13 @@ fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupErro
     ];
 
     if let Some(r1) = &obs_zone.r1 {
-        parts.push(format!("R1={}", format_runway_dimension(r1)));
+        parts.push(format!("R1={r1}"));
     }
     if let Some(a1) = obs_zone.a1 {
         parts.push(format!("A1={}", a1));
     }
     if let Some(r2) = &obs_zone.r2 {
-        parts.push(format!("R2={}", format_runway_dimension(r2)));
+        parts.push(format!("R2={r2}"));
     }
     if let Some(a2) = obs_zone.a2 {
         parts.push(format!("A2={}", a2));
