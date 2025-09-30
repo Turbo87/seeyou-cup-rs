@@ -12,15 +12,21 @@ use std::io::{Read, Write};
 use std::path::Path;
 use std::str::FromStr;
 
+/// Character encoding for CUP files
 #[derive(Debug, Clone, Copy)]
 pub enum CupEncoding {
+    /// UTF-8 encoding
     Utf8,
+    /// Windows-1252 encoding (legacy)
     Windows1252,
 }
 
+/// SeeYou CUP file representation
 #[derive(Debug, Default)]
 pub struct CupFile {
+    /// Waypoints defined in the file
     pub waypoints: Vec<Waypoint>,
+    /// Tasks defined in the file
     pub tasks: Vec<Task>,
 }
 
