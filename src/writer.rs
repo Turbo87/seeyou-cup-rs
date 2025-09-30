@@ -181,7 +181,7 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
 
 fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
     let mut parts = vec!["Options".to_string()];
-    
+
     if let Some(no_start) = &options.no_start {
         parts.push(format!("NoStart={}", no_start));
     }
@@ -201,7 +201,10 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
         parts.push(format!("MinDis={}", if min_dis { "True" } else { "False" }));
     }
     if let Some(random_order) = options.random_order {
-        parts.push(format!("RandomOrder={}", if random_order { "True" } else { "False" }));
+        parts.push(format!(
+            "RandomOrder={}",
+            if random_order { "True" } else { "False" }
+        ));
     }
     if let Some(max_pts) = options.max_pts {
         parts.push(format!("MaxPts={}", max_pts));
@@ -215,7 +218,7 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
     if let Some(bonus) = options.bonus {
         parts.push(format!("Bonus={}", bonus));
     }
-    
+
     Ok(parts.join(","))
 }
 
@@ -233,7 +236,7 @@ fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupErro
         format!("ObsZone={}", obs_zone.index),
         format!("Style={}", obs_zone.style as u8),
     ];
-    
+
     if let Some(r1) = &obs_zone.r1 {
         parts.push(format!("R1={}", format_runway_dimension(r1)));
     }
@@ -252,28 +255,26 @@ fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupErro
     if let Some(line) = obs_zone.line {
         parts.push(format!("Line={}", if line { "True" } else { "False" }));
     }
-    
+
     Ok(parts.join(","))
 }
 
 fn format_multiple_starts(starts: &[String]) -> Result<String, CupError> {
     // Format: STARTS="Start1","Start2","Start3"
-    let quoted_starts: Vec<String> = starts.iter()
-        .map(|s| format!("\"{}\"", s))
-        .collect();
+    let quoted_starts: Vec<String> = starts.iter().map(|s| format!("\"{}\"", s)).collect();
     Ok(format!("STARTS={}", quoted_starts.join(",")))
 }
 
 fn format_task(task: &Task) -> Result<String, CupError> {
     let mut result = String::new();
-    
+
     // Write the task line with waypoint names
     {
         let mut output = Vec::new();
         let mut csv_writer = Writer::from_writer(&mut output);
 
         let mut record = vec![task.description.as_deref().unwrap_or("").to_string()];
-        
+
         // Add all waypoint names to the task line
         for name in &task.waypoint_names {
             record.push(name.clone());
@@ -282,34 +283,34 @@ fn format_task(task: &Task) -> Result<String, CupError> {
         csv_writer.write_record(&record)?;
         csv_writer.flush()?;
         drop(csv_writer); // Explicitly drop to release borrow
-        
+
         let task_line = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
         result.push_str(task_line.trim_end());
     }
-    
+
     // Write task options if present
     if let Some(options) = &task.options {
         result.push('\n');
         result.push_str(&format_task_options(options)?);
     }
-    
+
     // Write observation zones
     for obs_zone in &task.observation_zones {
         result.push('\n');
         result.push_str(&format_observation_zone(obs_zone)?);
     }
-    
+
     // Write inline waypoints as separate Point= lines
     for (idx, waypoint) in &task.points {
         result.push('\n');
         result.push_str(&format_inline_waypoint_line(*idx as usize, waypoint)?);
     }
-    
+
     // Write multiple starts if present
     if !task.multiple_starts.is_empty() {
         result.push('\n');
         result.push_str(&format_multiple_starts(&task.multiple_starts)?);
     }
-    
+
     Ok(result)
 }
