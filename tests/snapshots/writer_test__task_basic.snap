@@ -1,0 +1,9 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+Start,S,XX,4500.000N,01000.000E,500m,2,,,,,,,
+Finish,F,XX,4600.000N,01100.000E,600m,5,,,,,,,
+-----Related Tasks-----
+Test Task,Start,Finish

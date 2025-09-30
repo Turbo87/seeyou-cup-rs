@@ -1,0 +1,18 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+Start A,SA,XX,4500.000N,01000.000E,500m,2,,,,,,,
+Turn Point,TP,XX,4600.000N,01100.000E,600m,1,,,,,,,
+Finish B,FB,XX,4700.000N,01200.000E,700m,5,,,,,,,
+-----Related Tasks-----
+Triangle Task,Start A,Turn Point,Start A
+Options,NoStart=09:00:00,TaskTime=03:00:00,WpDis=True,MinDis=False
+ObsZone=0,Style=0,R1=1000m,A1=180,Line=False
+Out and Return,Start A,Finish B,Start A
+Options,TaskTime=04:30:00,WpDis=False,NearDis=2km,NearAlt=200m,MinDis=True,RandomOrder=False,MaxPts=5,BeforePts=1,AfterPts=1,Bonus=25
+STARTS="Start A","Turn Point"
+,Start A
+ObsZone=1,Style=1,R1=500m,R2=2000m,A2=30,A12=45,Line=True
+Point=2,Inline Goal,IG,XX,4800.000N,01300.000E,800m,3,270,800m,20m,122.5,Emergency landing field,Private field,field1.jpg

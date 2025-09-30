@@ -1,0 +1,6 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+prime_meridian,TST,XX,0000.000N,00000.000E,0m,0,,,,,,,

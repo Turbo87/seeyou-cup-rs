@@ -1,0 +1,7 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+"Complex Airport, ""Test""",CMPLX,US,4007.407N,07459.259W,1250.5ft,5,275,1.2nm,45m,118.975,"Multi-line
+description with ""quotes""","User data, with commas",pic1.jpg;pic2.png

@@ -1,0 +1,6 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+west_antimeridian,TST,XX,0000.000N,18000.000W,0m,0,,,,,,,

@@ -1,0 +1,27 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+Style_Unknown,STY,XX,4500.000N,01000.000E,500m,0,,,,,,,
+Style_Waypoint,STY,XX,4500.000N,01000.000E,500m,1,,,,,,,
+Style_GrassAirfield,STY,XX,4500.000N,01000.000E,500m,2,,,,,,,
+Style_Outlanding,STY,XX,4500.000N,01000.000E,500m,3,,,,,,,
+Style_GlidingAirfield,STY,XX,4500.000N,01000.000E,500m,4,,,,,,,
+Style_SolidAirfield,STY,XX,4500.000N,01000.000E,500m,5,,,,,,,
+Style_MountainPass,STY,XX,4500.000N,01000.000E,500m,6,,,,,,,
+Style_MountainTop,STY,XX,4500.000N,01000.000E,500m,7,,,,,,,
+Style_TransmitterMast,STY,XX,4500.000N,01000.000E,500m,8,,,,,,,
+Style_Vor,STY,XX,4500.000N,01000.000E,500m,9,,,,,,,
+Style_Ndb,STY,XX,4500.000N,01000.000E,500m,10,,,,,,,
+Style_CoolingTower,STY,XX,4500.000N,01000.000E,500m,11,,,,,,,
+Style_Dam,STY,XX,4500.000N,01000.000E,500m,12,,,,,,,
+Style_Tunnel,STY,XX,4500.000N,01000.000E,500m,13,,,,,,,
+Style_Bridge,STY,XX,4500.000N,01000.000E,500m,14,,,,,,,
+Style_PowerPlant,STY,XX,4500.000N,01000.000E,500m,15,,,,,,,
+Style_Castle,STY,XX,4500.000N,01000.000E,500m,16,,,,,,,
+Style_Intersection,STY,XX,4500.000N,01000.000E,500m,17,,,,,,,
+Style_Marker,STY,XX,4500.000N,01000.000E,500m,18,,,,,,,
+Style_ControlPoint,STY,XX,4500.000N,01000.000E,500m,19,,,,,,,
+Style_PgTakeOff,STY,XX,4500.000N,01000.000E,500m,20,,,,,,,
+Style_PgLandingZone,STY,XX,4500.000N,01000.000E,500m,21,,,,,,,

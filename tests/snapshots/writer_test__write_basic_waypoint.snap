@@ -1,0 +1,6 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+Test Airport,TEST,US,4000.000N,07400.000W,100m,5,090,1500m,30m,123.45,Test description,user data,pic1.jpg;pic2.jpg

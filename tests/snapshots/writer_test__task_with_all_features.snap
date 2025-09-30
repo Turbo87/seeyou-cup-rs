@@ -1,0 +1,12 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+Start,S,XX,4500.000N,01000.000E,500m,0,,,,,,,
+-----Related Tasks-----
+Complex Task,Start
+Options,NoStart=08:30:00,TaskTime=05:00:00,WpDis=True,NearDis=1.5km,NearAlt=300m,MinDis=False,RandomOrder=True,MaxPts=10,BeforePts=2,AfterPts=3,Bonus=50.5
+ObsZone=0,Style=0,R1=500m,A1=90,R2=1000m,A2=45,A12=123.4,Line=True
+Point=1,Inline TP,ITP,XX,4600.000N,01100.000E,600m,1,,,,,Inline waypoint,,inline.jpg
+STARTS="Start1","Start2","Start3"

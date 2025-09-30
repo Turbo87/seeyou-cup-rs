@@ -1,0 +1,6 @@
+---
+source: tests/writer_test.rs
+expression: output
+---
+name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+precision_test,TST,XX,4507.407N,12059.259W,0m,0,,,,,,,
