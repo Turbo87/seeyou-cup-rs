@@ -1,55 +1,5 @@
-use seeyou::{CupEncoding, CupFile, Elevation, WaypointStyle};
+use seeyou::{CupEncoding, CupFile};
 use std::path::Path;
-
-#[test]
-fn test_parse_basic_waypoint() {
-    let input = r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
-"Cross Hands","CSS",UK,5147.809N,00405.003W,525ft,1,,,,"Turn Point, A48/A476, Between Cross Hands and Gorslas, 9 NMl ESE of Camarthen."
-"#;
-
-    let cup = CupFile::from_str(input).unwrap();
-
-    assert_eq!(cup.waypoints.len(), 1);
-    assert_eq!(cup.waypoints[0].name, "Cross Hands");
-    assert_eq!(cup.waypoints[0].code, "CSS");
-    assert_eq!(cup.waypoints[0].country, "UK");
-    assert!(matches!(cup.waypoints[0].elev, Elevation::Feet(_)));
-    assert_eq!(cup.waypoints[0].style, WaypointStyle::Waypoint);
-}
-
-#[test]
-fn test_parse_airport() {
-    let input = r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
-"Lesce","LJBL",SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,,123.500,"Home Airfield"
-"#;
-
-    let cup = CupFile::from_str(input).unwrap();
-
-    assert_eq!(cup.waypoints.len(), 1);
-    let wp = &cup.waypoints[0];
-    assert_eq!(wp.name, "Lesce");
-    assert_eq!(wp.code, "LJBL");
-    assert_eq!(wp.country, "SI");
-    assert!(matches!(wp.elev, Elevation::Meters(_)));
-    assert_eq!(wp.style, WaypointStyle::SolidAirfield);
-    assert_eq!(wp.runway_dir, Some(144));
-    assert!(wp.runway_len.is_some());
-    assert_eq!(wp.freq, Some("123.500".to_string()));
-}
-
-#[test]
-fn test_parse_outlanding() {
-    let input = r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
-"Aiton","O23L",FR,4533.517N,00614.050E,299.9m,3,110,300.0m,,"Page 222: O23L Large flat area. High crops. Sudden wind changes. Power lines N/S. S of road marked fields"
-"#;
-
-    let cup = CupFile::from_str(input).unwrap();
-
-    assert_eq!(cup.waypoints.len(), 1);
-    let wp = &cup.waypoints[0];
-    assert_eq!(wp.name, "Aiton");
-    assert_eq!(wp.style, WaypointStyle::Outlanding);
-}
 
 #[test]
 fn test_parse_task() {

@@ -114,8 +114,13 @@ fn parse_waypoint(headers: &StringRecord, record: &StringRecord) -> Result<Waypo
     };
 
     let name = get_field("name")
-        .ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?
-        .to_string();
+        .ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?;
+
+    if name.is_empty() {
+        return Err(CupError::Parse("Name field cannot be empty".to_string()));
+    }
+
+    let name = name.to_string();
 
     let code = get_field("code").unwrap_or_default().to_string();
     let country = get_field("country").unwrap_or_default().to_string();
@@ -194,8 +199,12 @@ fn parse_waypoint(headers: &StringRecord, record: &StringRecord) -> Result<Waypo
 }
 
 fn parse_latitude(s: &str) -> Result<f64, CupError> {
-    if s.len() < 9 {
-        return Err(CupError::Parse(format!("Invalid latitude format: {}", s)));
+    if s.len() != 9 {
+        return Err(CupError::Parse(format!(
+            "Invalid latitude format: {} (expected 9 characters, got {})",
+            s,
+            s.len()
+        )));
     }
 
     let hemisphere = s.chars().last().unwrap();
@@ -219,8 +228,12 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
 }
 
 fn parse_longitude(s: &str) -> Result<f64, CupError> {
-    if s.len() < 10 {
-        return Err(CupError::Parse(format!("Invalid longitude format: {}", s)));
+    if s.len() != 10 {
+        return Err(CupError::Parse(format!(
+            "Invalid longitude format: {} (expected 10 characters, got {})",
+            s,
+            s.len()
+        )));
     }
 
     let hemisphere = s.chars().last().unwrap();
