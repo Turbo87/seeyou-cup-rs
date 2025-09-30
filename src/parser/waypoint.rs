@@ -48,7 +48,7 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
     let elevation = elev_str.parse()?;
 
     let style_str = record.get(column_map.style).unwrap_or_default();
-    let style = parse_waypoint_style(style_str)?;
+    let style = parse_waypoint_style(style_str);
 
     let runway_direction = column_map.rwdir.and_then(|idx| record.get(idx));
     let runway_direction = runway_direction.filter(|s| !s.is_empty());
@@ -104,9 +104,29 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
     })
 }
 
-fn parse_waypoint_style(s: &str) -> Result<WaypointStyle, String> {
-    let value: u8 = s
-        .parse()
-        .map_err(|_| format!("Invalid waypoint style: {s}"))?;
-    Ok(WaypointStyle::from_u8(value))
+fn parse_waypoint_style(s: &str) -> WaypointStyle {
+    match s {
+        "1" => WaypointStyle::Waypoint,
+        "2" => WaypointStyle::GrassAirfield,
+        "3" => WaypointStyle::Outlanding,
+        "4" => WaypointStyle::GlidingAirfield,
+        "5" => WaypointStyle::SolidAirfield,
+        "6" => WaypointStyle::MountainPass,
+        "7" => WaypointStyle::MountainTop,
+        "8" => WaypointStyle::TransmitterMast,
+        "9" => WaypointStyle::Vor,
+        "10" => WaypointStyle::Ndb,
+        "11" => WaypointStyle::CoolingTower,
+        "12" => WaypointStyle::Dam,
+        "13" => WaypointStyle::Tunnel,
+        "14" => WaypointStyle::Bridge,
+        "15" => WaypointStyle::PowerPlant,
+        "16" => WaypointStyle::Castle,
+        "17" => WaypointStyle::Intersection,
+        "18" => WaypointStyle::Marker,
+        "19" => WaypointStyle::ControlPoint,
+        "20" => WaypointStyle::PgTakeOff,
+        "21" => WaypointStyle::PgLandingZone,
+        _ => WaypointStyle::Unknown,
+    }
 }

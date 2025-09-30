@@ -59,32 +59,3 @@ pub enum WaypointStyle {
     PgTakeOff = 20,
     PgLandingZone = 21,
 }
-
-impl WaypointStyle {
-    pub fn from_u8(value: u8) -> Self {
-        match value {
-            1 => WaypointStyle::Waypoint,
-            2 => WaypointStyle::GrassAirfield,
-            3 => WaypointStyle::Outlanding,
-            4 => WaypointStyle::GlidingAirfield,
-            5 => WaypointStyle::SolidAirfield,
-            6 => WaypointStyle::MountainPass,
-            7 => WaypointStyle::MountainTop,
-            8 => WaypointStyle::TransmitterMast,
-            9 => WaypointStyle::Vor,
-            10 => WaypointStyle::Ndb,
-            11 => WaypointStyle::CoolingTower,
-            12 => WaypointStyle::Dam,
-            13 => WaypointStyle::Tunnel,
-            14 => WaypointStyle::Bridge,
-            15 => WaypointStyle::PowerPlant,
-            16 => WaypointStyle::Castle,
-            17 => WaypointStyle::Intersection,
-            18 => WaypointStyle::Marker,
-            19 => WaypointStyle::ControlPoint,
-            20 => WaypointStyle::PgTakeOff,
-            21 => WaypointStyle::PgLandingZone,
-            _ => WaypointStyle::Unknown,
-        }
-    }
-}
