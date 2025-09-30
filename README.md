@@ -33,8 +33,8 @@ let cup_file = CupFile::from_str(cup_content)?;
 // Access waypoints
 for waypoint in &cup_file.waypoints {
     println!("Waypoint: {} ({})", waypoint.name, waypoint.code);
-    println!("  Location: {:.3}°N, {:.3}°W", waypoint.lat, waypoint.lon);
-    println!("  Elevation: {:.0}m", waypoint.elev.to_meters());
+    println!("  Location: {:.3}°N, {:.3}°W", waypoint.latitude, waypoint.longitude);
+    println!("  Elevation: {:.0}m", waypoint.elevation.to_meters());
 }
 
 // Access tasks
@@ -58,17 +58,17 @@ let waypoint = Waypoint {
     name: "Test Field".to_string(),
     code: "TEST".to_string(),
     country: "US".to_string(),
-    lat: 40.25833,  // 40°15.500'N
-    lon: -73.92083, // 73°55.250'W  
-    elev: Elevation::Meters(150.0),
+    latitude: 40.25833,  // 40°15.500'N
+    longitude: -73.92083, // 73°55.250'W  
+    elevation: Elevation::Meters(150.0),
     style: WaypointStyle::SolidAirfield,
-    runway_dir: Some(90),
-    runway_len: Some(seeyou_cup::RunwayDimension::Meters(800.0)),
+    runway_direction: Some(90),
+    runway_length: Some(seeyou_cup::RunwayDimension::Meters(800.0)),
     runway_width: None,
-    freq: Some("123.500".to_string()),
-    desc: Some("Test airfield".to_string()),
-    userdata: None,
-    pics: Vec::new(),
+    frequency: "123.500".to_string(),
+    description: "Test airfield".to_string(),
+    userdata: "".to_string(),
+    pictures: Vec::new(),
 };
 
 cup_file.waypoints.push(waypoint);
