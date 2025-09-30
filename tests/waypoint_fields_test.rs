@@ -1,4 +1,5 @@
-use claims::{assert_err, assert_matches, assert_ok, assert_some, assert_some_eq};
+use claims::{assert_err, assert_matches, assert_ok};
+use insta::assert_debug_snapshot;
 use seeyou_cup::{CupFile, Elevation, RunwayDimension, WaypointStyle};
 use std::str::FromStr;
 
@@ -9,13 +10,27 @@ fn test_parse_basic_waypoint() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-
     assert_eq!(cup.waypoints.len(), 1);
-    assert_eq!(cup.waypoints[0].name, "Cross Hands");
-    assert_eq!(cup.waypoints[0].code, "CSS");
-    assert_eq!(cup.waypoints[0].country, "UK");
-    assert_matches!(&cup.waypoints[0].elev, Elevation::Feet(_));
-    assert_eq!(cup.waypoints[0].style, WaypointStyle::Waypoint);
+    assert_debug_snapshot!(cup.waypoints[0], @r#"
+    Waypoint {
+        name: "Cross Hands",
+        code: "CSS",
+        country: "UK",
+        lat: 51.796816666666665,
+        lon: -4.083383333333333,
+        elev: Feet(
+            525.0,
+        ),
+        style: Waypoint,
+        runway_dir: None,
+        runway_len: None,
+        runway_width: None,
+        freq: "Turn Point, A48/A476, Between Cross Hands and Gorslas, 9 NMl ESE of Camarthen.",
+        desc: "",
+        userdata: "",
+        pics: [],
+    }
+    "#);
 }
 
 #[test]
@@ -25,17 +40,33 @@ fn test_parse_airport() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-
     assert_eq!(cup.waypoints.len(), 1);
-    let wp = &cup.waypoints[0];
-    assert_eq!(wp.name, "Lesce");
-    assert_eq!(wp.code, "LJBL");
-    assert_eq!(wp.country, "SI");
-    assert_matches!(&wp.elev, Elevation::Meters(_));
-    assert_eq!(wp.style, WaypointStyle::SolidAirfield);
-    assert_some_eq!(wp.runway_dir, 144);
-    assert_some!(&wp.runway_len);
-    assert_eq!(&wp.freq, "123.500");
+    assert_debug_snapshot!(cup.waypoints[0], @r#"
+    Waypoint {
+        name: "Lesce",
+        code: "LJBL",
+        country: "SI",
+        lat: 46.356316666666665,
+        lon: 14.17445,
+        elev: Meters(
+            504.0,
+        ),
+        style: SolidAirfield,
+        runway_dir: Some(
+            144,
+        ),
+        runway_len: Some(
+            Meters(
+                1130.0,
+            ),
+        ),
+        runway_width: None,
+        freq: "123.500",
+        desc: "Home Airfield",
+        userdata: "",
+        pics: [],
+    }
+    "#);
 }
 
 #[test]
@@ -45,11 +76,33 @@ fn test_parse_outlanding() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-
     assert_eq!(cup.waypoints.len(), 1);
-    let wp = &cup.waypoints[0];
-    assert_eq!(wp.name, "Aiton");
-    assert_eq!(wp.style, WaypointStyle::Outlanding);
+    assert_debug_snapshot!(cup.waypoints[0], @r#"
+    Waypoint {
+        name: "Aiton",
+        code: "O23L",
+        country: "FR",
+        lat: 45.558616666666666,
+        lon: 6.234166666666667,
+        elev: Meters(
+            299.9,
+        ),
+        style: Outlanding,
+        runway_dir: Some(
+            110,
+        ),
+        runway_len: Some(
+            Meters(
+                300.0,
+            ),
+        ),
+        runway_width: None,
+        freq: "Page 222: O23L Large flat area. High crops. Sudden wind changes. Power lines N/S. S of road marked fields",
+        desc: "",
+        userdata: "",
+        pics: [],
+    }
+    "#);
 }
 
 #[test]
