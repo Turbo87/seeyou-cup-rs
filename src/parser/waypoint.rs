@@ -52,12 +52,7 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
 
     let runway_direction = column_map.rwdir.and_then(|idx| record.get(idx));
     let runway_direction = runway_direction.filter(|s| !s.is_empty());
-    let runway_direction = runway_direction
-        .map(|s| {
-            s.parse()
-                .map_err(|_| format!("Invalid runway direction: {s}"))
-        })
-        .transpose()?;
+    let runway_direction = runway_direction.map(parse_runway_direction).transpose()?;
 
     let runway_length = column_map.rwlen.and_then(|idx| record.get(idx));
     let runway_length = runway_length.filter(|s| !s.is_empty());
@@ -129,4 +124,9 @@ fn parse_waypoint_style(s: &str) -> WaypointStyle {
         "21" => WaypointStyle::PgLandingZone,
         _ => WaypointStyle::Unknown,
     }
+}
+
+fn parse_runway_direction(s: &str) -> Result<u16, String> {
+    s.parse()
+        .map_err(|_| format!("Invalid runway direction: {s}"))
 }
