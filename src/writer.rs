@@ -179,6 +179,91 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
     Ok(waypoint_line.trim_end().to_string())
 }
 
+fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
+    let mut parts = vec!["Options".to_string()];
+    
+    if let Some(no_start) = &options.no_start {
+        parts.push(format!("NoStart={}", no_start));
+    }
+    if let Some(task_time) = &options.task_time {
+        parts.push(format!("TaskTime={}", task_time));
+    }
+    if let Some(wp_dis) = options.wp_dis {
+        parts.push(format!("WpDis={}", if wp_dis { "True" } else { "False" }));
+    }
+    if let Some(near_dis) = &options.near_dis {
+        parts.push(format!("NearDis={}", format_distance(near_dis)));
+    }
+    if let Some(near_alt) = &options.near_alt {
+        parts.push(format!("NearAlt={}", format_elevation(near_alt)));
+    }
+    if let Some(min_dis) = options.min_dis {
+        parts.push(format!("MinDis={}", if min_dis { "True" } else { "False" }));
+    }
+    if let Some(random_order) = options.random_order {
+        parts.push(format!("RandomOrder={}", if random_order { "True" } else { "False" }));
+    }
+    if let Some(max_pts) = options.max_pts {
+        parts.push(format!("MaxPts={}", max_pts));
+    }
+    if let Some(before_pts) = options.before_pts {
+        parts.push(format!("BeforePts={}", before_pts));
+    }
+    if let Some(after_pts) = options.after_pts {
+        parts.push(format!("AfterPts={}", after_pts));
+    }
+    if let Some(bonus) = options.bonus {
+        parts.push(format!("Bonus={}", bonus));
+    }
+    
+    Ok(parts.join(","))
+}
+
+fn format_distance(dist: &Distance) -> String {
+    match dist {
+        Distance::Meters(m) => format!("{}m", m),
+        Distance::Kilometers(km) => format!("{}km", km),
+        Distance::NauticalMiles(nm) => format!("{}nm", nm),
+        Distance::StatuteMiles(mi) => format!("{}ml", mi),
+    }
+}
+
+fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupError> {
+    let mut parts = vec![
+        format!("ObsZone={}", obs_zone.index),
+        format!("Style={}", obs_zone.style as u8),
+    ];
+    
+    if let Some(r1) = &obs_zone.r1 {
+        parts.push(format!("R1={}", format_runway_dimension(r1)));
+    }
+    if let Some(a1) = obs_zone.a1 {
+        parts.push(format!("A1={}", a1));
+    }
+    if let Some(r2) = &obs_zone.r2 {
+        parts.push(format!("R2={}", format_runway_dimension(r2)));
+    }
+    if let Some(a2) = obs_zone.a2 {
+        parts.push(format!("A2={}", a2));
+    }
+    if let Some(a12) = obs_zone.a12 {
+        parts.push(format!("A12={}", a12));
+    }
+    if let Some(line) = obs_zone.line {
+        parts.push(format!("Line={}", if line { "True" } else { "False" }));
+    }
+    
+    Ok(parts.join(","))
+}
+
+fn format_multiple_starts(starts: &[String]) -> Result<String, CupError> {
+    // Format: STARTS="Start1","Start2","Start3"
+    let quoted_starts: Vec<String> = starts.iter()
+        .map(|s| format!("\"{}\"", s))
+        .collect();
+    Ok(format!("STARTS={}", quoted_starts.join(",")))
+}
+
 fn format_task(task: &Task) -> Result<String, CupError> {
     let mut result = String::new();
     
@@ -202,10 +287,28 @@ fn format_task(task: &Task) -> Result<String, CupError> {
         result.push_str(task_line.trim_end());
     }
     
+    // Write task options if present
+    if let Some(options) = &task.options {
+        result.push('\n');
+        result.push_str(&format_task_options(options)?);
+    }
+    
+    // Write observation zones
+    for obs_zone in &task.observation_zones {
+        result.push('\n');
+        result.push_str(&format_observation_zone(obs_zone)?);
+    }
+    
     // Write inline waypoints as separate Point= lines
     for (idx, waypoint) in &task.points {
         result.push('\n');
         result.push_str(&format_inline_waypoint_line(*idx as usize, waypoint)?);
+    }
+    
+    // Write multiple starts if present
+    if !task.multiple_starts.is_empty() {
+        result.push('\n');
+        result.push_str(&format_multiple_starts(&task.multiple_starts)?);
     }
     
     Ok(result)

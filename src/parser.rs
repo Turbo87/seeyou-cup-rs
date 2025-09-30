@@ -66,6 +66,10 @@ fn split_sections(content: &str) -> (&str, Option<&str>) {
 }
 
 fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, StringRecord), CupError> {
+    if section.trim().is_empty() {
+        return Err(CupError::Parse("Empty file".to_string()));
+    }
+
     let mut csv_reader = csv::ReaderBuilder::new()
         .flexible(true)
         .from_reader(section.as_bytes());
@@ -248,6 +252,11 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
     let hemisphere = s.chars().last().unwrap();
     let coords = &s[..s.len() - 1];
 
+    // Validate hemisphere
+    if hemisphere != 'N' && hemisphere != 'S' {
+        return Err(CupError::Parse(format!("Invalid latitude hemisphere: {}", hemisphere)));
+    }
+
     let degrees: f64 = coords[0..2]
         .parse()
         .map_err(|_| CupError::Parse(format!("Invalid latitude degrees: {}", s)))?;
@@ -260,6 +269,14 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
 
     if hemisphere == 'S' {
         decimal_degrees = -decimal_degrees;
+    }
+
+    // Validate range
+    if decimal_degrees < -90.0 || decimal_degrees > 90.0 {
+        return Err(CupError::Parse(format!(
+            "Latitude out of range: {} (must be between -90 and 90)",
+            decimal_degrees
+        )));
     }
 
     Ok(decimal_degrees)
@@ -277,6 +294,11 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
     let hemisphere = s.chars().last().unwrap();
     let coords = &s[..s.len() - 1];
 
+    // Validate hemisphere
+    if hemisphere != 'E' && hemisphere != 'W' {
+        return Err(CupError::Parse(format!("Invalid longitude hemisphere: {}", hemisphere)));
+    }
+
     let degrees: f64 = coords[0..3]
         .parse()
         .map_err(|_| CupError::Parse(format!("Invalid longitude degrees: {}", s)))?;
@@ -289,6 +311,14 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
 
     if hemisphere == 'W' {
         decimal_degrees = -decimal_degrees;
+    }
+
+    // Validate range
+    if decimal_degrees < -180.0 || decimal_degrees > 180.0 {
+        return Err(CupError::Parse(format!(
+            "Longitude out of range: {} (must be between -180 and 180)",
+            decimal_degrees
+        )));
     }
 
     Ok(decimal_degrees)
@@ -310,6 +340,14 @@ fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
             .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
         Ok(Elevation::Meters(value))
     } else {
+        // Check for invalid units by looking for any alphabetic character
+        if s.chars().any(|c| c.is_alphabetic()) {
+            // Extract the unit suffix
+            let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
+            let unit = &s[unit_start..];
+            return Err(CupError::Parse(format!("Invalid elevation unit: {}", unit)));
+        }
+        
         let value: f64 = s
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
@@ -339,6 +377,14 @@ fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, CupError> {
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
         Ok(RunwayDimension::Meters(value))
     } else {
+        // Check for invalid units by looking for any alphabetic character
+        if s.chars().any(|c| c.is_alphabetic()) {
+            // Extract the unit suffix
+            let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
+            let unit = &s[unit_start..];
+            return Err(CupError::Parse(format!("Invalid runway dimension unit: {}", unit)));
+        }
+        
         let value: f64 = s
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
