@@ -132,16 +132,11 @@ impl WaypointStyle {
 #[derive(Debug)]
 pub struct Task {
     pub description: Option<String>,
-    pub waypoints: Vec<TaskPoint>,
+    pub waypoint_names: Vec<String>,
     pub options: Option<TaskOptions>,
     pub observation_zones: Vec<ObservationZone>,
+    pub points: Vec<(u32, Waypoint)>,
     pub multiple_starts: Vec<String>,
-}
-
-#[derive(Debug)]
-pub enum TaskPoint {
-    Reference(String),
-    Inline(Waypoint),
 }
 
 #[derive(Debug)]

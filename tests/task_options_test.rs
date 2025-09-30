@@ -1,5 +1,5 @@
 use claims::{assert_matches, assert_ok, assert_some, assert_some_eq};
-use seeyou::{CupFile, Distance, Elevation, ObsZoneStyle, RunwayDimension};
+use seeyou::{CupFile, Distance, Elevation, ObsZoneStyle, RunwayDimension, WaypointStyle};
 
 #[test]
 fn test_parse_options_line() {
@@ -386,4 +386,127 @@ STARTS=Start1,Start2
     assert_eq!(cup.tasks[0].multiple_starts.len(), 2);
     assert_eq!(cup.tasks[0].multiple_starts[0], "Start1");
     assert_eq!(cup.tasks[0].multiple_starts[1], "Start2");
+}
+
+#[test]
+fn test_inline_waypoint_basic() {
+    let input = r#"name,code,country,lat,lon,elev,style
+"Start","S",XX,5147.809N,00405.003W,500m,2
+"Finish","F",XX,5149.000N,00407.000W,700m,2
+-----Related Tasks-----
+"Test Task","Start","Finish"
+Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
+"#;
+
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_eq!(cup.tasks.len(), 1);
+    assert_eq!(cup.tasks[0].waypoint_names.len(), 2); // "Start" and "Finish"
+    assert_eq!(cup.tasks[0].points.len(), 1); // One inline waypoint
+
+    // Check that the inline waypoint was parsed correctly
+    let (point_index, waypoint) = &cup.tasks[0].points[0];
+    assert_eq!(*point_index, 1);
+    assert_eq!(waypoint.name, "TP1");
+    assert_eq!(waypoint.code, "T1");
+    assert_eq!(waypoint.country, "XX");
+    assert_eq!(waypoint.style, WaypointStyle::Waypoint);
+}
+
+#[test]
+fn test_inline_waypoint_with_all_fields() {
+    let input = r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+"Start","S",XX,5147.809N,00405.003W,500m,2,,,,,,
+-----Related Tasks-----
+"Test","Start"
+Point=1,"Airport",AIRP,SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,30m,123.500,"Test Airport","User data","pic1.jpg;pic2.jpg"
+"#;
+
+    let cup = assert_ok!(CupFile::from_str(input));
+
+    // Check that we have one inline waypoint
+    assert_eq!(cup.tasks[0].points.len(), 1);
+    let (point_index, waypoint) = &cup.tasks[0].points[0];
+    assert_eq!(*point_index, 1);
+
+    assert_eq!(waypoint.name, "Airport");
+    assert_eq!(waypoint.code, "AIRP");
+    assert_eq!(waypoint.country, "SI");
+    assert_eq!(waypoint.style, WaypointStyle::SolidAirfield);
+    assert_some_eq!(waypoint.runway_dir, 144);
+    assert_some!(&waypoint.runway_len);
+    assert_some!(&waypoint.runway_width);
+    assert_some_eq!(&waypoint.freq, "123.500");
+    assert_some_eq!(&waypoint.desc, "Test Airport");
+    assert_some_eq!(&waypoint.userdata, "User data");
+    assert_eq!(waypoint.pics, vec!["pic1.jpg", "pic2.jpg"]);
+}
+
+#[test]
+fn test_mixed_inline_and_reference_waypoints() {
+    let input = r#"name,code,country,lat,lon,elev,style
+"Start","S",XX,5147.809N,00405.003W,500m,2
+"Finish","F",XX,5149.000N,00407.000W,700m,2
+-----Related Tasks-----
+"Mixed Task","Start","TP1","TP2","Finish"
+Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
+Point=2,"TP2",T2,XX,5148.500N,00406.500W,650m,1
+"#;
+
+    let cup = assert_ok!(CupFile::from_str(input));
+
+    // Check waypoint names (references)
+    assert_eq!(cup.tasks[0].waypoint_names.len(), 4);
+    assert_eq!(cup.tasks[0].waypoint_names[0], "Start");
+    assert_eq!(cup.tasks[0].waypoint_names[1], "TP1");
+    assert_eq!(cup.tasks[0].waypoint_names[2], "TP2");
+    assert_eq!(cup.tasks[0].waypoint_names[3], "Finish");
+
+    // Check inline waypoints
+    assert_eq!(cup.tasks[0].points.len(), 2);
+
+    // Check first inline waypoint (Point=1)
+    let (idx1, waypoint1) = &cup.tasks[0].points[0];
+    assert_eq!(*idx1, 1);
+    assert_eq!(waypoint1.name, "TP1");
+    assert_eq!(waypoint1.code, "T1");
+
+    // Check second inline waypoint (Point=3)
+    let (idx2, waypoint2) = &cup.tasks[0].points[1];
+    assert_eq!(*idx2, 2);
+    assert_eq!(waypoint2.name, "TP2");
+    assert_eq!(waypoint2.code, "T2");
+}
+
+#[test]
+fn test_inline_waypoint_roundtrip() {
+    let input = r#"name,code,country,lat,lon,elev,style
+"Start","S",XX,5147.809N,00405.003W,500m,2
+"Finish","F",XX,5149.000N,00407.000W,700m,2
+-----Related Tasks-----
+"Test Task","Start","Finish"
+Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
+"#;
+
+    let cup = assert_ok!(CupFile::from_str(input));
+    let output = assert_ok!(cup.to_string());
+    let cup2 = assert_ok!(CupFile::from_str(&output));
+
+    // Check that the roundtrip preserved the inline waypoint
+    assert_eq!(cup.tasks[0].points.len(), cup2.tasks[0].points.len());
+    assert_eq!(
+        cup.tasks[0].waypoint_names.len(),
+        cup2.tasks[0].waypoint_names.len()
+    );
+
+    // Check that the inline waypoint was preserved
+    let (idx1, wp1) = &cup.tasks[0].points[0];
+    let (idx2, wp2) = &cup2.tasks[0].points[0];
+
+    assert_eq!(*idx1, *idx2);
+    assert_eq!(wp1.name, wp2.name);
+    assert_eq!(wp1.code, wp2.code);
+    assert_eq!(wp1.country, wp2.country);
+    assert_eq!(wp1.style, wp2.style);
+    assert!((wp1.lat - wp2.lat).abs() < 0.0001);
+    assert!((wp1.lon - wp2.lon).abs() < 0.0001);
 }

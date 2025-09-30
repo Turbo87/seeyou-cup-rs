@@ -51,8 +51,8 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
 fn parse_content(content: &str) -> Result<CupFile, CupError> {
     let (waypoint_section, task_section) = split_sections(content);
 
-    let waypoints = parse_waypoints(waypoint_section)?;
-    let tasks = parse_tasks(task_section)?;
+    let (waypoints, waypoint_headers) = parse_waypoints(waypoint_section)?;
+    let tasks = parse_tasks(task_section, &waypoint_headers)?;
 
     Ok(CupFile { waypoints, tasks })
 }
@@ -65,7 +65,7 @@ fn split_sections(content: &str) -> (&str, Option<&str>) {
     }
 }
 
-fn parse_waypoints(section: &str) -> Result<Vec<Waypoint>, CupError> {
+fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, StringRecord), CupError> {
     let mut csv_reader = csv::ReaderBuilder::new()
         .flexible(true)
         .from_reader(section.as_bytes());
@@ -79,10 +79,13 @@ fn parse_waypoints(section: &str) -> Result<Vec<Waypoint>, CupError> {
         waypoints.push(waypoint);
     }
 
-    Ok(waypoints)
+    Ok((waypoints, headers))
 }
 
-fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
+fn parse_tasks(
+    section: Option<&str>,
+    waypoint_headers: &StringRecord,
+) -> Result<Vec<Task>, CupError> {
     let Some(section) = section else {
         return Ok(Vec::new());
     };
@@ -96,13 +99,17 @@ fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
             continue;
         }
 
-        if trimmed.starts_with("Options") || trimmed.starts_with("ObsZone=") || trimmed.starts_with("STARTS=") {
+        if trimmed.starts_with("Options")
+            || trimmed.starts_with("ObsZone=")
+            || trimmed.starts_with("Point=")
+            || trimmed.starts_with("STARTS=")
+        {
             continue;
         }
 
         let mut task = parse_task_line(line)?;
 
-        // Look ahead for Options, ObsZone, and STARTS lines
+        // Look ahead for Options, ObsZone, Point, and STARTS lines
         while let Some(next_line) = lines.peek() {
             let next_trimmed = next_line.trim();
             if next_trimmed.is_empty() {
@@ -115,6 +122,12 @@ fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
                 lines.next();
             } else if next_trimmed.starts_with("ObsZone=") {
                 task.observation_zones.push(parse_obszone_line(next_line)?);
+                lines.next();
+            } else if next_trimmed.starts_with("Point=") {
+                let (point_index, inline_waypoint) =
+                    parse_inline_waypoint_line_with_index(next_line, waypoint_headers)?;
+                // Add the inline waypoint to the points field
+                task.points.push((point_index as u32, inline_waypoint));
                 lines.next();
             } else if next_trimmed.starts_with("STARTS=") {
                 task.multiple_starts = parse_starts_line(next_line)?;
@@ -138,8 +151,8 @@ fn parse_waypoint(headers: &StringRecord, record: &StringRecord) -> Result<Waypo
             .and_then(|idx| record.get(idx))
     };
 
-    let name = get_field("name")
-        .ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?;
+    let name =
+        get_field("name").ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?;
 
     if name.is_empty() {
         return Err(CupError::Parse("Name field cannot be empty".to_string()));
@@ -361,18 +374,19 @@ fn parse_task_line(line: &str) -> Result<Task, CupError> {
         Some(record.get(0).unwrap().to_string())
     };
 
-    let waypoints = record
+    let waypoint_names = record
         .iter()
         .skip(1)
         .filter(|s| !s.is_empty())
-        .map(|s| TaskPoint::Reference(s.to_string()))
+        .map(|s| s.to_string())
         .collect();
 
     Ok(Task {
         description,
-        waypoints,
+        waypoint_names,
         options: None,
         observation_zones: Vec::new(),
+        points: Vec::new(),
         multiple_starts: Vec::new(),
     })
 }
@@ -511,4 +525,50 @@ fn parse_starts_line(line: &str) -> Result<Vec<String>, CupError> {
     } else {
         Ok(Vec::new())
     }
+}
+
+fn parse_inline_waypoint_line_with_index(
+    line: &str,
+    waypoint_headers: &StringRecord,
+) -> Result<(usize, Waypoint), CupError> {
+    // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
+
+    // Create CSV reader to handle quoting and escaping properly
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .flexible(true)
+        .from_reader(line.as_bytes());
+
+    let record = match csv_reader.records().next() {
+        Some(Ok(r)) => r,
+        Some(Err(e)) => {
+            return Err(CupError::Parse(format!(
+                "Failed to parse inline waypoint line: {}",
+                e
+            )));
+        }
+        None => return Err(CupError::Parse("Empty inline waypoint line".to_string())),
+    };
+
+    // Check that it starts with Point=N
+    if record.len() < 1 || !record[0].starts_with("Point=") {
+        return Err(CupError::Parse(format!(
+            "Invalid inline waypoint format: {}",
+            line
+        )));
+    }
+
+    // Extract the point index
+    let point_idx_str = record[0].trim_start_matches("Point=");
+    let point_index = point_idx_str
+        .parse::<usize>()
+        .map_err(|_| CupError::Parse(format!("Invalid point index: {}", point_idx_str)))?;
+
+    // Skip the Point=N field and create a proper waypoint record
+    let waypoint_record = StringRecord::from(record.iter().skip(1).collect::<Vec<_>>());
+
+    // Parse as a normal waypoint using the same headers as the waypoint section
+    let waypoint = parse_waypoint(waypoint_headers, &waypoint_record)?;
+    
+    Ok((point_index, waypoint))
 }

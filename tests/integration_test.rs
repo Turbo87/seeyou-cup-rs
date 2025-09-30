@@ -18,7 +18,7 @@ fn test_parse_task() {
 
     let task = &cup.tasks[0];
     assert_some_eq!(&task.description, "Test Task");
-    assert_eq!(task.waypoints.len(), 3);
+    assert_eq!(task.waypoint_names.len(), 3);
 }
 
 #[test]
@@ -121,7 +121,7 @@ fn test_fixture_with_task() {
         &task.description,
         "709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"
     );
-    assert_eq!(task.waypoints.len(), 5);
+    assert_eq!(task.waypoint_names.len(), 5);
 }
 #[test]
 fn test_fixture_windows1252() {

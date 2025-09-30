@@ -132,24 +132,81 @@ fn format_runway_dimension(dim: &RunwayDimension) -> String {
     }
 }
 
-fn format_task(task: &Task) -> Result<String, CupError> {
+fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<String, CupError> {
+    // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
+    let pics = if waypoint.pics.is_empty() {
+        String::new()
+    } else {
+        waypoint.pics.join(";")
+    };
+
+    // Create a CSV writer to properly format the waypoint data
     let mut output = Vec::new();
     {
         let mut csv_writer = Writer::from_writer(&mut output);
+        csv_writer.write_record(&[
+            &format!("Point={}", index),
+            &waypoint.name,
+            &waypoint.code,
+            &waypoint.country,
+            &format_latitude(waypoint.lat),
+            &format_longitude(waypoint.lon),
+            &format_elevation(&waypoint.elev),
+            &(waypoint.style as u8).to_string(),
+            &waypoint
+                .runway_dir
+                .map(|d| format!("{:03}", d))
+                .unwrap_or_default(),
+            &waypoint
+                .runway_len
+                .as_ref()
+                .map(format_runway_dimension)
+                .unwrap_or_default(),
+            &waypoint
+                .runway_width
+                .as_ref()
+                .map(format_runway_dimension)
+                .unwrap_or_default(),
+            waypoint.freq.as_deref().unwrap_or(""),
+            waypoint.desc.as_deref().unwrap_or(""),
+            waypoint.userdata.as_deref().unwrap_or(""),
+            &pics,
+        ])?;
+        csv_writer.flush()?;
+    }
 
-        let mut record = vec![task.description.as_deref().unwrap_or("")];
+    let waypoint_line = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
+    Ok(waypoint_line.trim_end().to_string())
+}
 
-        for waypoint in &task.waypoints {
-            match waypoint {
-                TaskPoint::Reference(name) => record.push(name),
-                TaskPoint::Inline(_) => record.push(""),
-            }
+fn format_task(task: &Task) -> Result<String, CupError> {
+    let mut result = String::new();
+    
+    // Write the task line with waypoint names
+    {
+        let mut output = Vec::new();
+        let mut csv_writer = Writer::from_writer(&mut output);
+
+        let mut record = vec![task.description.as_deref().unwrap_or("").to_string()];
+        
+        // Add all waypoint names to the task line
+        for name in &task.waypoint_names {
+            record.push(name.clone());
         }
 
         csv_writer.write_record(&record)?;
         csv_writer.flush()?;
+        drop(csv_writer); // Explicitly drop to release borrow
+        
+        let task_line = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
+        result.push_str(task_line.trim_end());
     }
-
-    let result = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
-    Ok(result.trim_end().to_string())
+    
+    // Write inline waypoints as separate Point= lines
+    for (idx, waypoint) in &task.points {
+        result.push('\n');
+        result.push_str(&format_inline_waypoint_line(*idx as usize, waypoint)?);
+    }
+    
+    Ok(result)
 }
