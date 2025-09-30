@@ -1,4 +1,5 @@
 use std::fmt::{Display, Formatter};
+use std::str::FromStr;
 
 #[derive(Debug)]
 pub struct Waypoint {
@@ -72,6 +73,41 @@ impl Display for RunwayDimension {
             RunwayDimension::Meters(m) => write!(f, "{}m", m),
             RunwayDimension::NauticalMiles(nm) => write!(f, "{}nm", nm),
             RunwayDimension::StatuteMiles(mi) => write!(f, "{}ml", mi),
+        }
+    }
+}
+
+impl FromStr for RunwayDimension {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+
+        if let Some(value_str) = s.strip_suffix("nm") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
+            Ok(RunwayDimension::NauticalMiles(value))
+        } else if let Some(value_str) = s.strip_suffix("ml") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
+            Ok(RunwayDimension::StatuteMiles(value))
+        } else if let Some(value_str) = s.strip_suffix('m') {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
+            Ok(RunwayDimension::Meters(value))
+        } else {
+            if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
+                let unit = &s[unit_start..];
+                return Err(format!("Invalid runway dimension unit: {unit}",));
+            }
+
+            let value: f64 = s
+                .parse()
+                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
+            Ok(RunwayDimension::Meters(value))
         }
     }
 }

@@ -259,14 +259,14 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         .rwlen
         .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
-        .map(parse_runway_dimension)
+        .map(|s| s.parse())
         .transpose()?;
 
     let runway_width = column_map
         .rwwidth
         .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
-        .map(parse_runway_dimension)
+        .map(|s| s.parse())
         .transpose()?;
 
     let freq = column_map
@@ -435,39 +435,6 @@ fn parse_elevation(s: &str) -> Result<Elevation, String> {
             .parse()
             .map_err(|_| format!("Invalid elevation value: {s}"))?;
         Ok(Elevation::Meters(value))
-    }
-}
-
-fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, String> {
-    let s = s.trim();
-
-    if let Some(value_str) = s.strip_suffix("nm") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-        Ok(RunwayDimension::NauticalMiles(value))
-    } else if let Some(value_str) = s.strip_suffix("ml") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-        Ok(RunwayDimension::StatuteMiles(value))
-    } else if let Some(value_str) = s.strip_suffix('m') {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-        Ok(RunwayDimension::Meters(value))
-    } else {
-        // Check for invalid units by looking for any alphabetic character
-        if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
-            // Extract the unit suffix
-            let unit = &s[unit_start..];
-            return Err(format!("Invalid runway dimension unit: {unit}",));
-        }
-
-        let value: f64 = s
-            .parse()
-            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-        Ok(RunwayDimension::Meters(value))
     }
 }
 
