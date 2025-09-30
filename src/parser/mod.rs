@@ -3,7 +3,7 @@ mod column_map;
 use crate::CupEncoding;
 use crate::CupFile;
 use crate::error::CupError;
-use crate::parser::column_map::{ColumnMap, build_column_map};
+use crate::parser::column_map::ColumnMap;
 use crate::types::*;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
@@ -64,7 +64,7 @@ fn parse_content(content: &str) -> Result<CupFile, CupError> {
         .from_reader(content.as_bytes());
 
     let headers = csv_reader.headers()?;
-    let column_map = build_column_map(headers).map_err(CupError::Parse)?;
+    let column_map = ColumnMap::try_from(headers).map_err(CupError::Parse)?;
 
     let mut csv_iter = csv_reader.records();
     let waypoints = parse_waypoints(&mut csv_iter, &column_map)?;
