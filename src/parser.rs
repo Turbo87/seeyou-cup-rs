@@ -267,20 +267,20 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
     let freq = column_map
         .freq
         .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
-        .map(str::to_string);
+        .unwrap_or_default()
+        .to_string();
 
     let desc = column_map
         .desc
         .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
-        .map(str::to_string);
+        .unwrap_or_default()
+        .to_string();
 
     let userdata = column_map
         .userdata
         .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
-        .map(str::to_string);
+        .unwrap_or_default()
+        .to_string();
 
     let pics = column_map
         .pics

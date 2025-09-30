@@ -1,4 +1,4 @@
-use claims::{assert_err, assert_ok, assert_some, assert_some_eq};
+use claims::{assert_err, assert_ok, assert_some};
 use seeyou_cup::CupFile;
 use std::str::FromStr;
 
@@ -110,7 +110,7 @@ fn test_unicode_characters_beyond_ascii() {
     let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Zürich ✈️");
-    assert_some_eq!(&cup.waypoints[0].desc, "Airport with émojis and ümlaunts");
+    assert_eq!(&cup.waypoints[0].desc, "Airport with émojis and ümlaunts");
 }
 
 #[test]

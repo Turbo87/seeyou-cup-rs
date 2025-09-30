@@ -92,9 +92,9 @@ fn write_waypoint<W: std::io::Write>(
             .as_ref()
             .map(format_runway_dimension)
             .unwrap_or_default(),
-        waypoint.freq.as_deref().unwrap_or(""),
-        waypoint.desc.as_deref().unwrap_or(""),
-        waypoint.userdata.as_deref().unwrap_or(""),
+        &waypoint.freq,
+        &waypoint.desc,
+        &waypoint.userdata,
         &pics,
     ])?;
 
@@ -167,9 +167,9 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
                 .as_ref()
                 .map(format_runway_dimension)
                 .unwrap_or_default(),
-            waypoint.freq.as_deref().unwrap_or(""),
-            waypoint.desc.as_deref().unwrap_or(""),
-            waypoint.userdata.as_deref().unwrap_or(""),
+            &waypoint.freq,
+            &waypoint.desc,
+            &waypoint.userdata,
             &pics,
         ])?;
         csv_writer.flush()?;

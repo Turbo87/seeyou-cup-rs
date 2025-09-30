@@ -27,8 +27,8 @@ fn test_missing_optional_columns_after_style() {
     assert_eq!(cup.waypoints[0].name, "Cross Hands");
     assert_eq!(cup.waypoints[0].runway_dir, None);
     assert_eq!(cup.waypoints[0].runway_len, None);
-    assert_eq!(cup.waypoints[0].freq, None);
-    assert_eq!(cup.waypoints[0].desc, None);
+    assert_eq!(cup.waypoints[0].freq, "");
+    assert_eq!(cup.waypoints[0].desc, "");
 }
 
 #[test]
@@ -53,7 +53,7 @@ fn test_escaped_quotes_within_quoted_fields() {
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, r#"Test "Quote""#);
-    assert_some_eq!(&cup.waypoints[0].desc, r#"Description with "quotes""#);
+    assert_eq!(&cup.waypoints[0].desc, r#"Description with "quotes""#);
 }
 
 #[test]
@@ -66,7 +66,7 @@ Line 3\"
 
     let cup = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, "Test");
-    assert_some_eq!(&cup.waypoints[0].desc, "Line 1\nLine 2\nLine 3");
+    assert_eq!(&cup.waypoints[0].desc, "Line 1\nLine 2\nLine 3");
 }
 
 #[test]
@@ -87,7 +87,7 @@ fn test_fields_with_commas_are_quoted() {
 "#;
 
     let cup = assert_ok!(CupFile::from_str(input));
-    assert_some_eq!(&cup.waypoints[0].desc, "Description with, comma");
+    assert_eq!(&cup.waypoints[0].desc, "Description with, comma");
 }
 
 #[test]
@@ -101,9 +101,9 @@ fn test_empty_optional_fields() {
     assert_eq!(cup.waypoints[0].code, "");
     assert_eq!(cup.waypoints[0].country, "");
     assert_none!(cup.waypoints[0].runway_dir);
-    assert_none!(&cup.waypoints[0].freq);
-    assert_none!(&cup.waypoints[0].desc);
-    assert_none!(&cup.waypoints[0].userdata);
+    assert_eq!(&cup.waypoints[0].freq, "");
+    assert_eq!(&cup.waypoints[0].desc, "");
+    assert_eq!(&cup.waypoints[0].userdata, "");
     assert!(cup.waypoints[0].pics.is_empty());
 }
 
@@ -160,5 +160,5 @@ fn test_arbitrary_column_order_with_all_fields() {
     assert_eq!(cup.waypoints[0].code, "LJBL");
     assert_eq!(cup.waypoints[0].country, "SI");
     assert_eq!(cup.waypoints[0].style, WaypointStyle::SolidAirfield);
-    assert_some_eq!(&cup.waypoints[0].desc, "Airport desc");
+    assert_eq!(&cup.waypoints[0].desc, "Airport desc");
 }

@@ -1,4 +1,4 @@
-use claims::{assert_ok, assert_some, assert_some_eq};
+use claims::{assert_ok, assert_some};
 use seeyou_cup::{CupEncoding, CupFile};
 use std::path::Path;
 
@@ -33,7 +33,7 @@ fn test_encoding_auto_detect_windows1252() {
     let la_tourne = assert_some!(cup.waypoints.iter().find(|w| w.name == "121_La Tourne"));
 
     // The description should contain "Passhöhe" with proper umlaut
-    assert_some_eq!(&la_tourne.desc, "Passhöhe");
+    assert_eq!(&la_tourne.desc, "Passhöhe");
 }
 
 #[test]

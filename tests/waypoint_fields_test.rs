@@ -35,7 +35,7 @@ fn test_parse_airport() {
     assert_eq!(wp.style, WaypointStyle::SolidAirfield);
     assert_some_eq!(wp.runway_dir, 144);
     assert_some!(&wp.runway_len);
-    assert_some_eq!(&wp.freq, "123.500");
+    assert_eq!(&wp.freq, "123.500");
 }
 
 #[test]
@@ -408,7 +408,7 @@ fn test_frequency_format() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_some_eq!(&cup.waypoints[0].freq, "123.500");
+    assert_eq!(&cup.waypoints[0].freq, "123.500");
 }
 
 #[test]
@@ -418,7 +418,7 @@ fn test_frequency_in_quotes() {
 "#;
 
     let cup = CupFile::from_str(input).unwrap();
-    assert_some_eq!(&cup.waypoints[0].freq, "123.500");
+    assert_eq!(&cup.waypoints[0].freq, "123.500");
 }
 
 #[test]
@@ -432,7 +432,7 @@ fn test_description_unlimited_length() {
     );
 
     let cup = CupFile::from_str(&input).unwrap();
-    assert_some_eq!(&cup.waypoints[0].desc, &long_desc);
+    assert_eq!(&cup.waypoints[0].desc, &long_desc);
 }
 
 #[test]

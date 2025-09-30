@@ -10,9 +10,9 @@ pub struct Waypoint {
     pub runway_dir: Option<u16>,
     pub runway_len: Option<RunwayDimension>,
     pub runway_width: Option<RunwayDimension>,
-    pub freq: Option<String>,
-    pub desc: Option<String>,
-    pub userdata: Option<String>,
+    pub freq: String,
+    pub desc: String,
+    pub userdata: String,
     pub pics: Vec<String>,
 }
 

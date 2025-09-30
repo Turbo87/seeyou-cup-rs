@@ -436,9 +436,9 @@ Point=1,"Airport",AIRP,SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,30m,123.500,
     assert_some_eq!(waypoint.runway_dir, 144);
     assert_some!(&waypoint.runway_len);
     assert_some!(&waypoint.runway_width);
-    assert_some_eq!(&waypoint.freq, "123.500");
-    assert_some_eq!(&waypoint.desc, "Test Airport");
-    assert_some_eq!(&waypoint.userdata, "User data");
+    assert_eq!(&waypoint.freq, "123.500");
+    assert_eq!(&waypoint.desc, "Test Airport");
+    assert_eq!(&waypoint.userdata, "User data");
     assert_eq!(waypoint.pics, vec!["pic1.jpg", "pic2.jpg"]);
 }
 

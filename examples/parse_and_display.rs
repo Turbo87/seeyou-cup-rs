@@ -43,11 +43,11 @@ fn main() {
         if let Some(ref width) = wp.runway_width {
             println!("   Runway width: {}", format_runway_dimension(width));
         }
-        if let Some(ref freq) = wp.freq {
-            println!("   Frequency: {}", freq);
+        if !wp.freq.is_empty() {
+            println!("   Frequency: {}", wp.freq);
         }
-        if let Some(ref desc) = wp.desc {
-            println!("   Description: {}", desc);
+        if !wp.desc.is_empty() {
+            println!("   Description: {}", wp.desc);
         }
 
         println!();

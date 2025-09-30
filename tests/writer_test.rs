@@ -28,9 +28,9 @@ fn test_write_basic_waypoint() {
         runway_dir: Some(90),
         runway_len: Some(RunwayDimension::Meters(1500.0)),
         runway_width: Some(RunwayDimension::Meters(30.0)),
-        freq: Some("123.45".to_string()),
-        desc: Some("Test description".to_string()),
-        userdata: Some("user data".to_string()),
+        freq: "123.45".to_string(),
+        desc: "Test description".to_string(),
+        userdata: "user data".to_string(),
         pics: vec!["pic1.jpg".to_string(), "pic2.jpg".to_string()],
     });
 
@@ -53,9 +53,9 @@ fn test_write_csv_escaping() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: Some("Description with, comma and \"quotes\"".to_string()),
-        userdata: None,
+        freq: String::new(),
+        desc: "Description with, comma and \"quotes\"".to_string(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -78,9 +78,9 @@ fn test_write_multiline_fields() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: Some("Line 1\nLine 2\nLine 3".to_string()),
-        userdata: None,
+        freq: String::new(),
+        desc: "Line 1\nLine 2\nLine 3".to_string(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -114,9 +114,9 @@ fn test_coordinate_boundary_values() {
             runway_dir: None,
             runway_len: None,
             runway_width: None,
-            freq: None,
-            desc: None,
-            userdata: None,
+            freq: String::new(),
+            desc: String::new(),
+            userdata: String::new(),
             pics: vec![],
         });
 
@@ -165,9 +165,9 @@ fn test_all_waypoint_styles() {
             runway_dir: None,
             runway_len: None,
             runway_width: None,
-            freq: None,
-            desc: None,
-            userdata: None,
+            freq: String::new(),
+            desc: String::new(),
+            userdata: String::new(),
             pics: vec![],
         });
     }
@@ -191,9 +191,9 @@ fn test_task_basic() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -208,9 +208,9 @@ fn test_task_basic() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -242,9 +242,9 @@ fn test_task_with_all_features() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -259,9 +259,9 @@ fn test_task_with_all_features() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: Some("Inline waypoint".to_string()),
-        userdata: None,
+        freq: String::new(),
+        desc: "Inline waypoint".to_string(),
+        userdata: String::new(),
         pics: vec!["inline.jpg".to_string()],
     };
 
@@ -319,9 +319,9 @@ fn test_multiple_tasks() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -336,9 +336,9 @@ fn test_multiple_tasks() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -353,9 +353,9 @@ fn test_multiple_tasks() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: None,
-        userdata: None,
+        freq: String::new(),
+        desc: String::new(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -432,9 +432,9 @@ fn test_multiple_tasks() {
         runway_dir: Some(270),
         runway_len: Some(RunwayDimension::Meters(800.0)),
         runway_width: Some(RunwayDimension::Meters(20.0)),
-        freq: Some("122.5".to_string()),
-        desc: Some("Emergency landing field".to_string()),
-        userdata: Some("Private field".to_string()),
+        freq: "122.5".to_string(),
+        desc: "Emergency landing field".to_string(),
+        userdata: "Private field".to_string(),
         pics: vec!["field1.jpg".to_string()],
     };
 
@@ -497,9 +497,9 @@ fn test_encoding_windows1252_roundtrip() {
         runway_dir: None,
         runway_len: None,
         runway_width: None,
-        freq: None,
-        desc: Some("Passhöhe".to_string()),
-        userdata: None,
+        freq: String::new(),
+        desc: "Passhöhe".to_string(),
+        userdata: String::new(),
         pics: vec![],
     });
 
@@ -514,7 +514,7 @@ fn test_encoding_windows1252_roundtrip() {
     ));
     assert_eq!(parsed.waypoints.len(), 1);
     assert_eq!(parsed.waypoints[0].name, "Zürich");
-    assert_some_eq!(&parsed.waypoints[0].desc, "Passhöhe");
+    assert_eq!(&parsed.waypoints[0].desc, "Passhöhe");
 }
 
 #[test]
@@ -533,9 +533,9 @@ fn test_comprehensive_roundtrip() {
         runway_dir: Some(275),
         runway_len: Some(RunwayDimension::NauticalMiles(1.2)),
         runway_width: Some(RunwayDimension::Meters(45.0)),
-        freq: Some("118.975".to_string()),
-        desc: Some("Multi-line\ndescription with \"quotes\"".to_string()),
-        userdata: Some("User data, with commas".to_string()),
+        freq: "118.975".to_string(),
+        desc: "Multi-line\ndescription with \"quotes\"".to_string(),
+        userdata: "User data, with commas".to_string(),
         pics: vec!["pic1.jpg".to_string(), "pic2.png".to_string()],
     });
 
