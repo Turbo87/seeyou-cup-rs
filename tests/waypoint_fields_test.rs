@@ -57,7 +57,8 @@ fn test_empty_name_should_error() {
 "",CSS,UK,5147.809N,00405.003W,525ft,1
 "#;
 
-    assert_err!(CupFile::from_str(input));
+    let err = assert_err!(CupFile::from_str(input));
+    insta::assert_snapshot!(err, @"Parse error: Name field cannot be empty");
 }
 
 #[test]
@@ -66,7 +67,8 @@ fn test_invalid_latitude_too_short() {
 "Test",T,XX,5147.8N,00405.003W,0m,1
 "#;
 
-    assert_err!(CupFile::from_str(input));
+    let err = assert_err!(CupFile::from_str(input));
+    insta::assert_snapshot!(err, @"Parse error: Invalid latitude format: 5147.8N (expected 9 characters, got 7)");
 }
 
 #[test]
@@ -75,7 +77,8 @@ fn test_invalid_latitude_too_long() {
 "Test",T,XX,51247.809N,00405.003W,0m,1
 "#;
 
-    assert_err!(CupFile::from_str(input));
+    let err = assert_err!(CupFile::from_str(input));
+    insta::assert_snapshot!(err, @"Parse error: Invalid latitude format: 51247.809N (expected 9 characters, got 10)");
 }
 
 #[test]
@@ -84,7 +87,8 @@ fn test_invalid_longitude_too_short() {
 "Test",T,XX,5147.809N,0405.0W,0m,1
 "#;
 
-    assert_err!(CupFile::from_str(input));
+    let err = assert_err!(CupFile::from_str(input));
+    insta::assert_snapshot!(err, @"Parse error: Invalid longitude format: 0405.0W (expected 10 characters, got 7)");
 }
 
 #[test]
@@ -93,7 +97,8 @@ fn test_invalid_longitude_too_long() {
 "Test",T,XX,5147.809N,000405.003W,0m,1
 "#;
 
-    assert_err!(CupFile::from_str(input));
+    let err = assert_err!(CupFile::from_str(input));
+    insta::assert_snapshot!(err, @"Parse error: Invalid longitude format: 000405.003W (expected 10 characters, got 11)");
 }
 
 #[test]
