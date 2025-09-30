@@ -89,7 +89,7 @@ fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, HashMap<String, usiz
     let mut waypoints = Vec::new();
     for result in csv_reader.records() {
         let record = result?;
-        let waypoint = parse_waypoint(&column_map, &record)?;
+        let waypoint = parse_waypoint(&column_map, &record).map_err(CupError::Parse)?;
         waypoints.push(waypoint);
     }
 
@@ -160,18 +160,17 @@ fn parse_tasks(
 fn parse_waypoint(
     column_map: &HashMap<String, usize>,
     record: &StringRecord,
-) -> Result<Waypoint, CupError> {
+) -> Result<Waypoint, String> {
     let get_field = |key: &str| -> Option<&str> {
         column_map
             .get(&key.to_lowercase())
             .and_then(|&idx| record.get(idx))
     };
 
-    let name =
-        get_field("name").ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?;
+    let name = get_field("name").ok_or("Missing 'name' field")?;
 
     if name.is_empty() {
-        return Err(CupError::Parse("Name field cannot be empty".to_string()));
+        return Err("Name field cannot be empty".into());
     }
 
     let name = name.to_string();
@@ -179,27 +178,23 @@ fn parse_waypoint(
     let code = get_field("code").unwrap_or_default().to_string();
     let country = get_field("country").unwrap_or_default().to_string();
 
-    let lat_str =
-        get_field("lat").ok_or_else(|| CupError::Parse("Missing 'lat' field".to_string()))?;
+    let lat_str = get_field("lat").ok_or("Missing 'lat' field")?;
     let lat = parse_latitude(lat_str)?;
 
-    let lon_str =
-        get_field("lon").ok_or_else(|| CupError::Parse("Missing 'lon' field".to_string()))?;
+    let lon_str = get_field("lon").ok_or("Missing 'lon' field")?;
     let lon = parse_longitude(lon_str)?;
 
-    let elev_str =
-        get_field("elev").ok_or_else(|| CupError::Parse("Missing 'elev' field".to_string()))?;
+    let elev_str = get_field("elev").ok_or("Missing 'elev' field")?;
     let elev = parse_elevation(elev_str)?;
 
-    let style_str =
-        get_field("style").ok_or_else(|| CupError::Parse("Missing 'style' field".to_string()))?;
+    let style_str = get_field("style").ok_or("Missing 'style' field")?;
     let style = parse_waypoint_style(style_str)?;
 
     let runway_dir = get_field("rwdir")
         .filter(|s| !s.is_empty())
         .map(|s| {
             s.parse::<u16>()
-                .map_err(|_| CupError::Parse(format!("Invalid runway direction: {}", s)))
+                .map_err(|_| format!("Invalid runway direction: {s}"))
         })
         .transpose()?;
 
@@ -252,13 +247,12 @@ fn parse_waypoint(
     })
 }
 
-fn parse_latitude(s: &str) -> Result<f64, CupError> {
+fn parse_latitude(s: &str) -> Result<f64, String> {
     if s.len() != 9 {
-        return Err(CupError::Parse(format!(
-            "Invalid latitude format: {} (expected 9 characters, got {})",
-            s,
+        return Err(format!(
+            "Invalid latitude format: {s} (expected 9 characters, got {})",
             s.len()
-        )));
+        ));
     }
 
     let hemisphere = s.chars().last().unwrap();
@@ -266,19 +260,16 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
 
     // Validate hemisphere
     if hemisphere != 'N' && hemisphere != 'S' {
-        return Err(CupError::Parse(format!(
-            "Invalid latitude hemisphere: {}",
-            hemisphere
-        )));
+        return Err(format!("Invalid latitude hemisphere: {hemisphere}"));
     }
 
     let degrees: f64 = coords[0..2]
         .parse()
-        .map_err(|_| CupError::Parse(format!("Invalid latitude degrees: {}", s)))?;
+        .map_err(|_| format!("Invalid latitude degrees: {s}"))?;
 
     let minutes: f64 = coords[2..]
         .parse()
-        .map_err(|_| CupError::Parse(format!("Invalid latitude minutes: {}", s)))?;
+        .map_err(|_| format!("Invalid latitude minutes: {s}"))?;
 
     let mut decimal_degrees = degrees + minutes / 60.0;
 
@@ -288,22 +279,21 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
 
     // Validate range
     if !(-90.0..=90.0).contains(&decimal_degrees) {
-        return Err(CupError::Parse(format!(
+        return Err(format!(
             "Latitude out of range: {} (must be between -90 and 90)",
             decimal_degrees
-        )));
+        ));
     }
 
     Ok(decimal_degrees)
 }
 
-fn parse_longitude(s: &str) -> Result<f64, CupError> {
+fn parse_longitude(s: &str) -> Result<f64, String> {
     if s.len() != 10 {
-        return Err(CupError::Parse(format!(
-            "Invalid longitude format: {} (expected 10 characters, got {})",
-            s,
+        return Err(format!(
+            "Invalid longitude format: {s} (expected 10 characters, got {})",
             s.len()
-        )));
+        ));
     }
 
     let hemisphere = s.chars().last().unwrap();
@@ -311,19 +301,16 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
 
     // Validate hemisphere
     if hemisphere != 'E' && hemisphere != 'W' {
-        return Err(CupError::Parse(format!(
-            "Invalid longitude hemisphere: {}",
-            hemisphere
-        )));
+        return Err(format!("Invalid longitude hemisphere: {}", hemisphere));
     }
 
     let degrees: f64 = coords[0..3]
         .parse()
-        .map_err(|_| CupError::Parse(format!("Invalid longitude degrees: {}", s)))?;
+        .map_err(|_| format!("Invalid longitude degrees: {}", s))?;
 
     let minutes: f64 = coords[3..]
         .parse()
-        .map_err(|_| CupError::Parse(format!("Invalid longitude minutes: {}", s)))?;
+        .map_err(|_| format!("Invalid longitude minutes: {}", s))?;
 
     let mut decimal_degrees = degrees + minutes / 60.0;
 
@@ -333,27 +320,27 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
 
     // Validate range
     if !(-180.0..=180.0).contains(&decimal_degrees) {
-        return Err(CupError::Parse(format!(
+        return Err(format!(
             "Longitude out of range: {} (must be between -180 and 180)",
             decimal_degrees
-        )));
+        ));
     }
 
     Ok(decimal_degrees)
 }
 
-fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
+fn parse_elevation(s: &str) -> Result<Elevation, String> {
     let s = s.trim();
 
     if let Some(value_str) = s.strip_suffix("ft") {
         let value: f64 = value_str
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
+            .map_err(|_| format!("Invalid elevation value: {s}"))?;
         Ok(Elevation::Feet(value))
     } else if let Some(value_str) = s.strip_suffix('m') {
         let value: f64 = value_str
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
+            .map_err(|_| format!("Invalid elevation value: {s}"))?;
         Ok(Elevation::Meters(value))
     } else {
         // Check for invalid units by looking for any alphabetic character
@@ -361,33 +348,33 @@ fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
             // Extract the unit suffix
             let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
             let unit = &s[unit_start..];
-            return Err(CupError::Parse(format!("Invalid elevation unit: {}", unit)));
+            return Err(format!("Invalid elevation unit: {unit}"));
         }
 
         let value: f64 = s
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
+            .map_err(|_| format!("Invalid elevation value: {s}"))?;
         Ok(Elevation::Meters(value))
     }
 }
 
-fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, CupError> {
+fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, String> {
     let s = s.trim();
 
     if let Some(value_str) = s.strip_suffix("nm") {
         let value: f64 = value_str
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
+            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
         Ok(RunwayDimension::NauticalMiles(value))
     } else if let Some(value_str) = s.strip_suffix("ml") {
         let value: f64 = value_str
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
+            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
         Ok(RunwayDimension::StatuteMiles(value))
     } else if let Some(value_str) = s.strip_suffix('m') {
         let value: f64 = value_str
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
+            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
         Ok(RunwayDimension::Meters(value))
     } else {
         // Check for invalid units by looking for any alphabetic character
@@ -395,23 +382,20 @@ fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, CupError> {
             // Extract the unit suffix
             let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
             let unit = &s[unit_start..];
-            return Err(CupError::Parse(format!(
-                "Invalid runway dimension unit: {}",
-                unit
-            )));
+            return Err(format!("Invalid runway dimension unit: {unit}",));
         }
 
         let value: f64 = s
             .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
+            .map_err(|_| format!("Invalid runway dimension: {s}"))?;
         Ok(RunwayDimension::Meters(value))
     }
 }
 
-fn parse_waypoint_style(s: &str) -> Result<WaypointStyle, CupError> {
+fn parse_waypoint_style(s: &str) -> Result<WaypointStyle, String> {
     let value: u8 = s
         .parse()
-        .map_err(|_| CupError::Parse(format!("Invalid waypoint style: {}", s)))?;
+        .map_err(|_| format!("Invalid waypoint style: {s}"))?;
     Ok(WaypointStyle::from_u8(value))
 }
 
@@ -478,7 +462,9 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
                 "TaskTime" => options.task_time = Some(value.to_string()),
                 "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
                 "NearDis" => options.near_dis = Some(parse_distance(value)?),
-                "NearAlt" => options.near_alt = Some(parse_elevation(value)?),
+                "NearAlt" => {
+                    options.near_alt = Some(parse_elevation(value).map_err(CupError::Parse)?)
+                }
                 "MinDis" => options.min_dis = Some(value.eq_ignore_ascii_case("true")),
                 "RandomOrder" => options.random_order = Some(value.eq_ignore_ascii_case("true")),
                 "MaxPts" => options.max_pts = value.parse().ok(),
@@ -546,9 +532,9 @@ fn parse_obszone_line(line: &str) -> Result<ObservationZone, CupError> {
                         style = ObsZoneStyle::from_u8(val);
                     }
                 }
-                "R1" => r1 = Some(parse_runway_dimension(value)?),
+                "R1" => r1 = Some(parse_runway_dimension(value).map_err(CupError::Parse)?),
                 "A1" => a1 = value.parse().ok(),
-                "R2" => r2 = Some(parse_runway_dimension(value)?),
+                "R2" => r2 = Some(parse_runway_dimension(value).map_err(CupError::Parse)?),
                 "A2" => a2 = value.parse().ok(),
                 "A12" => a12 = value.parse().ok(),
                 "Line" => line_val = Some(value == "1" || value.eq_ignore_ascii_case("true")),
@@ -626,7 +612,7 @@ fn parse_inline_waypoint_line_with_index(
     let waypoint_record = StringRecord::from(record.iter().skip(1).collect::<Vec<_>>());
 
     // Parse as a normal waypoint using the same headers as the waypoint section
-    let waypoint = parse_waypoint(column_map, &waypoint_record)?;
+    let waypoint = parse_waypoint(column_map, &waypoint_record).map_err(CupError::Parse)?;
 
     Ok((point_index, waypoint))
 }
