@@ -18,17 +18,18 @@ The SeeYou CUP format is widely used by flight planning software and GPS devices
 
 ### Reading a CUP file
 
-```rust
+```rust,no_run
 use seeyou_cup::CupFile;
+use std::str::FromStr;
 
 // From a file path
-let cup_file = CupFile::from_path("waypoints.cup")?;
+let cup_file = CupFile::from_path("waypoints.cup").unwrap();
 
 // From a string
 let cup_content = r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
 "Home Field","HOME",US,4015.500N,07355.250W,150.0m,5,90,800.0m,,123.500,"Home airfield"
 "#;
-let cup_file = CupFile::from_str(cup_content)?;
+let cup_file = CupFile::from_str(cup_content).unwrap();
 
 // Access waypoints
 for waypoint in &cup_file.waypoints {
@@ -48,7 +49,7 @@ for task in &cup_file.tasks {
 
 ### Writing a CUP file
 
-```rust
+```rust,no_run
 use seeyou_cup::{CupFile, Waypoint, Elevation, WaypointStyle};
 
 let mut cup_file = CupFile::default();
@@ -74,22 +75,22 @@ let waypoint = Waypoint {
 cup_file.waypoints.push(waypoint);
 
 // Write to file
-cup_file.to_path("output.cup")?;
+cup_file.to_path("output.cup").unwrap();
 
 // Or get as string
-let cup_string = cup_file.to_string()?;
+let cup_string = cup_file.to_string().unwrap();
 ```
 
 ### Working with different encodings
 
-```rust
+```rust,no_run
 use seeyou_cup::{CupFile, CupEncoding};
 
 // Read with specific encoding
-let cup_file = CupFile::from_path_with_encoding("waypoints.cup", CupEncoding::Windows1252)?;
+let cup_file = CupFile::from_path_with_encoding("waypoints.cup", CupEncoding::Windows1252).unwrap();
 
 // Write with specific encoding
-cup_file.to_path_with_encoding("output.cup", CupEncoding::Utf8)?;
+cup_file.to_path_with_encoding("output.cup", CupEncoding::Utf8).unwrap();
 ```
 
 ## License
