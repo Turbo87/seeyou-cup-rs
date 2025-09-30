@@ -5,6 +5,7 @@ use crate::types::*;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::borrow::Cow;
+use std::collections::HashMap;
 use std::io::Read;
 
 pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, CupError> {
@@ -65,7 +66,15 @@ fn split_sections(content: &str) -> (&str, Option<&str>) {
     }
 }
 
-fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, StringRecord), CupError> {
+fn build_column_map(headers: &StringRecord) -> HashMap<String, usize> {
+    headers
+        .iter()
+        .enumerate()
+        .map(|(idx, name)| (name.to_lowercase(), idx))
+        .collect()
+}
+
+fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, HashMap<String, usize>), CupError> {
     if section.trim().is_empty() {
         return Err(CupError::Parse("Empty file".to_string()));
     }
@@ -75,20 +84,21 @@ fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, StringRecord), CupEr
         .from_reader(section.as_bytes());
 
     let headers = csv_reader.headers()?.clone();
+    let column_map = build_column_map(&headers);
 
     let mut waypoints = Vec::new();
     for result in csv_reader.records() {
         let record = result?;
-        let waypoint = parse_waypoint(&headers, &record)?;
+        let waypoint = parse_waypoint(&column_map, &record)?;
         waypoints.push(waypoint);
     }
 
-    Ok((waypoints, headers))
+    Ok((waypoints, column_map))
 }
 
 fn parse_tasks(
     section: Option<&str>,
-    waypoint_headers: &StringRecord,
+    column_map: &HashMap<String, usize>,
 ) -> Result<Vec<Task>, CupError> {
     let Some(section) = section else {
         return Ok(Vec::new());
@@ -129,7 +139,7 @@ fn parse_tasks(
                 lines.next();
             } else if next_trimmed.starts_with("Point=") {
                 let (point_index, inline_waypoint) =
-                    parse_inline_waypoint_line_with_index(next_line, waypoint_headers)?;
+                    parse_inline_waypoint_line_with_index(next_line, column_map)?;
                 // Add the inline waypoint to the points field
                 task.points.push((point_index as u32, inline_waypoint));
                 lines.next();
@@ -147,12 +157,14 @@ fn parse_tasks(
     Ok(tasks)
 }
 
-fn parse_waypoint(headers: &StringRecord, record: &StringRecord) -> Result<Waypoint, CupError> {
+fn parse_waypoint(
+    column_map: &HashMap<String, usize>,
+    record: &StringRecord,
+) -> Result<Waypoint, CupError> {
     let get_field = |key: &str| -> Option<&str> {
-        headers
-            .iter()
-            .position(|h| h.eq_ignore_ascii_case(key))
-            .and_then(|idx| record.get(idx))
+        column_map
+            .get(&key.to_lowercase())
+            .and_then(|&idx| record.get(idx))
     };
 
     let name =
@@ -575,7 +587,7 @@ fn parse_starts_line(line: &str) -> Result<Vec<String>, CupError> {
 
 fn parse_inline_waypoint_line_with_index(
     line: &str,
-    waypoint_headers: &StringRecord,
+    column_map: &HashMap<String, usize>,
 ) -> Result<(usize, Waypoint), CupError> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
 
@@ -614,7 +626,7 @@ fn parse_inline_waypoint_line_with_index(
     let waypoint_record = StringRecord::from(record.iter().skip(1).collect::<Vec<_>>());
 
     // Parse as a normal waypoint using the same headers as the waypoint section
-    let waypoint = parse_waypoint(waypoint_headers, &waypoint_record)?;
+    let waypoint = parse_waypoint(column_map, &waypoint_record)?;
 
     Ok((point_index, waypoint))
 }
