@@ -88,17 +88,42 @@ fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
     };
 
     let mut tasks = Vec::new();
-    for line in section.lines().skip(1) {
+    let mut lines = section.lines().skip(1).peekable();
+
+    while let Some(line) = lines.next() {
         let trimmed = line.trim();
-        if trimmed.is_empty()
-            || trimmed.starts_with("Options")
-            || trimmed.starts_with("ObsZone=")
-            || trimmed.starts_with("STARTS=")
-        {
+        if trimmed.is_empty() {
             continue;
         }
 
-        let task = parse_task_line(line)?;
+        if trimmed.starts_with("Options") || trimmed.starts_with("ObsZone=") || trimmed.starts_with("STARTS=") {
+            continue;
+        }
+
+        let mut task = parse_task_line(line)?;
+
+        // Look ahead for Options, ObsZone, and STARTS lines
+        while let Some(next_line) = lines.peek() {
+            let next_trimmed = next_line.trim();
+            if next_trimmed.is_empty() {
+                lines.next();
+                continue;
+            }
+
+            if next_trimmed.starts_with("Options") {
+                task.options = Some(parse_options_line(next_line)?);
+                lines.next();
+            } else if next_trimmed.starts_with("ObsZone=") {
+                task.observation_zones.push(parse_obszone_line(next_line)?);
+                lines.next();
+            } else if next_trimmed.starts_with("STARTS=") {
+                task.multiple_starts = parse_starts_line(next_line)?;
+                lines.next();
+            } else {
+                break;
+            }
+        }
+
         tasks.push(task);
     }
 
@@ -350,4 +375,140 @@ fn parse_task_line(line: &str) -> Result<Task, CupError> {
         observation_zones: Vec::new(),
         multiple_starts: Vec::new(),
     })
+}
+
+fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
+    // Options,NoStart=12:34:56,TaskTime=01:45:12,WpDis=False,NearDis=0.7km,NearAlt=300.0m
+    let parts: Vec<&str> = line.split(',').collect();
+
+    let mut options = TaskOptions {
+        no_start: None,
+        task_time: None,
+        wp_dis: None,
+        near_dis: None,
+        near_alt: None,
+        min_dis: None,
+        random_order: None,
+        max_pts: None,
+        before_pts: None,
+        after_pts: None,
+        bonus: None,
+    };
+
+    for part in parts.iter().skip(1) {
+        if let Some((key, value)) = part.split_once('=') {
+            match key {
+                "NoStart" => options.no_start = Some(value.to_string()),
+                "TaskTime" => options.task_time = Some(value.to_string()),
+                "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
+                "NearDis" => options.near_dis = Some(parse_distance(value)?),
+                "NearAlt" => options.near_alt = Some(parse_elevation(value)?),
+                "MinDis" => options.min_dis = Some(value.eq_ignore_ascii_case("true")),
+                "RandomOrder" => options.random_order = Some(value.eq_ignore_ascii_case("true")),
+                "MaxPts" => options.max_pts = value.parse().ok(),
+                "BeforePts" => options.before_pts = value.parse().ok(),
+                "AfterPts" => options.after_pts = value.parse().ok(),
+                "Bonus" => options.bonus = value.parse().ok(),
+                _ => {}
+            }
+        }
+    }
+
+    Ok(options)
+}
+
+fn parse_distance(s: &str) -> Result<Distance, CupError> {
+    let s = s.trim();
+
+    if s.ends_with("km") {
+        let value_str = &s[..s.len() - 2];
+        let value: f64 = value_str
+            .parse()
+            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
+        Ok(Distance::Kilometers(value))
+    } else if s.ends_with("nm") {
+        let value_str = &s[..s.len() - 2];
+        let value: f64 = value_str
+            .parse()
+            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
+        Ok(Distance::NauticalMiles(value))
+    } else if s.ends_with("ml") {
+        let value_str = &s[..s.len() - 2];
+        let value: f64 = value_str
+            .parse()
+            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
+        Ok(Distance::StatuteMiles(value))
+    } else if s.ends_with('m') {
+        let value_str = &s[..s.len() - 1];
+        let value: f64 = value_str
+            .parse()
+            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
+        Ok(Distance::Meters(value))
+    } else {
+        let value: f64 = s
+            .parse()
+            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
+        Ok(Distance::Meters(value))
+    }
+}
+
+fn parse_obszone_line(line: &str) -> Result<ObservationZone, CupError> {
+    // ObsZone=0,Style=2,R1=400m,A1=180,Line=1
+    let parts: Vec<&str> = line.split(',').collect();
+
+    let mut index = None;
+    let mut style = None;
+    let mut r1 = None;
+    let mut a1 = None;
+    let mut r2 = None;
+    let mut a2 = None;
+    let mut a12 = None;
+    let mut line_val = None;
+
+    for part in parts.iter() {
+        if let Some((key, value)) = part.split_once('=') {
+            match key {
+                "ObsZone" => index = value.parse().ok(),
+                "Style" => {
+                    if let Ok(val) = value.parse::<u8>() {
+                        style = ObsZoneStyle::from_u8(val);
+                    }
+                }
+                "R1" => r1 = Some(parse_runway_dimension(value)?),
+                "A1" => a1 = value.parse().ok(),
+                "R2" => r2 = Some(parse_runway_dimension(value)?),
+                "A2" => a2 = value.parse().ok(),
+                "A12" => a12 = value.parse().ok(),
+                "Line" => line_val = Some(value == "1" || value.eq_ignore_ascii_case("true")),
+                _ => {}
+            }
+        }
+    }
+
+    let index = index.ok_or_else(|| CupError::Parse("Missing ObsZone index".to_string()))?;
+    let style = style.ok_or_else(|| CupError::Parse("Missing ObsZone style".to_string()))?;
+
+    Ok(ObservationZone {
+        index,
+        style,
+        r1,
+        a1,
+        r2,
+        a2,
+        a12,
+        line: line_val,
+    })
+}
+
+fn parse_starts_line(line: &str) -> Result<Vec<String>, CupError> {
+    // STARTS=Celovec,Hodos,Ratitovec,Jamnik
+    if let Some(starts_part) = line.strip_prefix("STARTS=") {
+        Ok(starts_part
+            .split(',')
+            .map(|s| s.trim().to_string())
+            .filter(|s| !s.is_empty())
+            .collect())
+    } else {
+        Ok(Vec::new())
+    }
 }
