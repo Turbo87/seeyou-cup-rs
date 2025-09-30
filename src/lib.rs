@@ -1,10 +1,10 @@
-mod types;
-mod parser;
-mod writer;
 mod error;
+mod parser;
+mod types;
+mod writer;
 
-pub use types::*;
 pub use error::CupError;
+pub use types::*;
 
 use std::fs::File;
 use std::io::{Read, Write};

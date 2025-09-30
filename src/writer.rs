@@ -1,7 +1,7 @@
-use crate::error::CupError;
-use crate::types::*;
 use crate::CupEncoding;
 use crate::CupFile;
+use crate::error::CupError;
+use crate::types::*;
 use csv::Writer;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::io::Write;

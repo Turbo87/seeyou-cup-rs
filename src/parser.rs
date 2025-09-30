@@ -1,7 +1,7 @@
-use crate::error::CupError;
-use crate::types::*;
 use crate::CupEncoding;
 use crate::CupFile;
+use crate::error::CupError;
+use crate::types::*;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::borrow::Cow;
@@ -105,10 +105,7 @@ fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
     Ok(tasks)
 }
 
-fn parse_waypoint(
-    headers: &StringRecord,
-    record: &StringRecord,
-) -> Result<Waypoint, CupError> {
+fn parse_waypoint(headers: &StringRecord, record: &StringRecord) -> Result<Waypoint, CupError> {
     let get_field = |key: &str| -> Option<&str> {
         headers
             .iter()
@@ -123,20 +120,20 @@ fn parse_waypoint(
     let code = get_field("code").unwrap_or_default().to_string();
     let country = get_field("country").unwrap_or_default().to_string();
 
-    let lat_str = get_field("lat")
-        .ok_or_else(|| CupError::Parse("Missing 'lat' field".to_string()))?;
+    let lat_str =
+        get_field("lat").ok_or_else(|| CupError::Parse("Missing 'lat' field".to_string()))?;
     let lat = parse_latitude(lat_str)?;
 
-    let lon_str = get_field("lon")
-        .ok_or_else(|| CupError::Parse("Missing 'lon' field".to_string()))?;
+    let lon_str =
+        get_field("lon").ok_or_else(|| CupError::Parse("Missing 'lon' field".to_string()))?;
     let lon = parse_longitude(lon_str)?;
 
-    let elev_str = get_field("elev")
-        .ok_or_else(|| CupError::Parse("Missing 'elev' field".to_string()))?;
+    let elev_str =
+        get_field("elev").ok_or_else(|| CupError::Parse("Missing 'elev' field".to_string()))?;
     let elev = parse_elevation(elev_str)?;
 
-    let style_str = get_field("style")
-        .ok_or_else(|| CupError::Parse("Missing 'style' field".to_string()))?;
+    let style_str =
+        get_field("style").ok_or_else(|| CupError::Parse("Missing 'style' field".to_string()))?;
     let style = parse_waypoint_style(style_str)?;
 
     let runway_dir = get_field("rwdir")

@@ -98,17 +98,23 @@ fn test_longitude_conversion() {
 }
 
 fn parse_lat(s: &str) -> f64 {
-    let input = format!(r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+    let input = format!(
+        r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
 "Test","T",XX,{},00000.000E,0m,1
-"#, s);
+"#,
+        s
+    );
     let cup = CupFile::from_str(&input).unwrap();
     cup.waypoints[0].lat
 }
 
 fn parse_lon(s: &str) -> f64 {
-    let input = format!(r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
+    let input = format!(
+        r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
 "Test","T",XX,0000.000N,{},0m,1
-"#, s);
+"#,
+        s
+    );
     let cup = CupFile::from_str(&input).unwrap();
     cup.waypoints[0].lon
 }
@@ -159,7 +165,9 @@ fn test_fixture_with_task() {
     assert_eq!(cup.tasks.len(), 1);
 
     let task = &cup.tasks[0];
-    assert_eq!(task.description.as_deref(), Some("709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"));
+    assert_eq!(
+        task.description.as_deref(),
+        Some("709 km · Dreieck · DMSt · Aachen Stolberg TV_282915")
+    );
     assert_eq!(task.waypoints.len(), 5);
 }
-
