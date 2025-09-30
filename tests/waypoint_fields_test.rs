@@ -304,7 +304,7 @@ fn test_invalid_elevation_unit() {
 "Test",T,XX,5147.809N,00405.003W,500km,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid elevation value: 500km");
+    insta::assert_snapshot!(err, @"Parse error: Invalid elevation: 500km");
 }
 
 #[test]

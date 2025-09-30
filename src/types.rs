@@ -1,6 +1,56 @@
 use std::fmt::{Display, Formatter};
 use std::str::FromStr;
 
+macro_rules! dimension_enum {
+    (
+        $name:ident,
+        $display_name:literal,
+        [
+            $( $variant:ident = $suffix:literal ),* $(,)?
+        ]
+    ) => {
+        #[derive(Debug, Clone, PartialEq)]
+        pub enum $name {
+            $( $variant(f64) ),*
+        }
+
+        impl Display for $name {
+            fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+                match self {
+                    $( $name::$variant(value) => write!(f, "{value}{}", $suffix) ),*
+                }
+            }
+        }
+
+        impl FromStr for $name {
+            type Err = String;
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                let s = s.trim();
+
+                $(
+                    if let Some(value_str) = s.strip_suffix($suffix) {
+                        let value: f64 = value_str
+                            .parse()
+                            .map_err(|_| format!("Invalid {}: {s}", $display_name))?;
+                        return Ok($name::$variant(value));
+                    }
+                )*
+
+                if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
+                    let unit = &s[unit_start..];
+                    return Err(format!("Invalid {} unit: {unit}", $display_name));
+                }
+
+                let value: f64 = s
+                    .parse()
+                    .map_err(|_| format!("Invalid {}: {s}", $display_name))?;
+                Ok($name::Meters(value))
+            }
+        }
+    };
+}
+
 #[derive(Debug)]
 pub struct Waypoint {
     pub name: String,
@@ -19,11 +69,7 @@ pub struct Waypoint {
     pub pics: Vec<String>,
 }
 
-#[derive(Debug, Clone, PartialEq)]
-pub enum Elevation {
-    Meters(f64),
-    Feet(f64),
-}
+dimension_enum!(Elevation, "elevation", [Feet = "ft", Meters = "m"]);
 
 impl Elevation {
     pub fn to_meters(&self) -> f64 {
@@ -41,51 +87,11 @@ impl Elevation {
     }
 }
 
-impl Display for Elevation {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Elevation::Meters(m) => write!(f, "{}m", m),
-            Elevation::Feet(ft) => write!(f, "{}ft", ft),
-        }
-    }
-}
-
-impl FromStr for Elevation {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim();
-
-        if let Some(value_str) = s.strip_suffix("ft") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid elevation value: {s}"))?;
-            Ok(Elevation::Feet(value))
-        } else if let Some(value_str) = s.strip_suffix('m') {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid elevation value: {s}"))?;
-            Ok(Elevation::Meters(value))
-        } else {
-            if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
-                let unit = &s[unit_start..];
-                return Err(format!("Invalid elevation unit: {unit}"));
-            }
-
-            let value: f64 = s
-                .parse()
-                .map_err(|_| format!("Invalid elevation value: {s}"))?;
-            Ok(Elevation::Meters(value))
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum RunwayDimension {
-    Meters(f64),
-    NauticalMiles(f64),
-    StatuteMiles(f64),
-}
+dimension_enum!(
+    RunwayDimension,
+    "runway dimension",
+    [NauticalMiles = "nm", StatuteMiles = "ml", Meters = "m"]
+);
 
 impl RunwayDimension {
     pub fn to_meters(&self) -> f64 {
@@ -97,58 +103,16 @@ impl RunwayDimension {
     }
 }
 
-impl Display for RunwayDimension {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            RunwayDimension::Meters(m) => write!(f, "{}m", m),
-            RunwayDimension::NauticalMiles(nm) => write!(f, "{}nm", nm),
-            RunwayDimension::StatuteMiles(mi) => write!(f, "{}ml", mi),
-        }
-    }
-}
-
-impl FromStr for RunwayDimension {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim();
-
-        if let Some(value_str) = s.strip_suffix("nm") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-            Ok(RunwayDimension::NauticalMiles(value))
-        } else if let Some(value_str) = s.strip_suffix("ml") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-            Ok(RunwayDimension::StatuteMiles(value))
-        } else if let Some(value_str) = s.strip_suffix('m') {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-            Ok(RunwayDimension::Meters(value))
-        } else {
-            if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
-                let unit = &s[unit_start..];
-                return Err(format!("Invalid runway dimension unit: {unit}",));
-            }
-
-            let value: f64 = s
-                .parse()
-                .map_err(|_| format!("Invalid runway dimension: {s}"))?;
-            Ok(RunwayDimension::Meters(value))
-        }
-    }
-}
-
-#[derive(Debug, Clone, PartialEq)]
-pub enum Distance {
-    Meters(f64),
-    Kilometers(f64),
-    NauticalMiles(f64),
-    StatuteMiles(f64),
-}
+dimension_enum!(
+    Distance,
+    "distance",
+    [
+        Kilometers = "km",
+        NauticalMiles = "nm",
+        StatuteMiles = "ml",
+        Meters = "m",
+    ]
+);
 
 impl Distance {
     pub fn to_meters(&self) -> f64 {
@@ -157,52 +121,6 @@ impl Distance {
             Distance::Kilometers(km) => km * 1000.0,
             Distance::NauticalMiles(nm) => nm * 1852.0,
             Distance::StatuteMiles(mi) => mi * 1609.344,
-        }
-    }
-}
-
-impl Display for Distance {
-    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Distance::Meters(m) => write!(f, "{}m", m),
-            Distance::Kilometers(km) => write!(f, "{}km", km),
-            Distance::NauticalMiles(nm) => write!(f, "{}nm", nm),
-            Distance::StatuteMiles(mi) => write!(f, "{}ml", mi),
-        }
-    }
-}
-
-impl FromStr for Distance {
-    type Err = String;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let s = s.trim();
-
-        if let Some(value_str) = s.strip_suffix("km") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid distance value: {}", s))?;
-            Ok(Distance::Kilometers(value))
-        } else if let Some(value_str) = s.strip_suffix("nm") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid distance value: {}", s))?;
-            Ok(Distance::NauticalMiles(value))
-        } else if let Some(value_str) = s.strip_suffix("ml") {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid distance value: {}", s))?;
-            Ok(Distance::StatuteMiles(value))
-        } else if let Some(value_str) = s.strip_suffix('m') {
-            let value: f64 = value_str
-                .parse()
-                .map_err(|_| format!("Invalid distance value: {}", s))?;
-            Ok(Distance::Meters(value))
-        } else {
-            let value: f64 = s
-                .parse()
-                .map_err(|_| format!("Invalid distance value: {}", s))?;
-            Ok(Distance::Meters(value))
         }
     }
 }
