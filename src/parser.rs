@@ -217,8 +217,7 @@ fn parse_tasks(section: Option<&str>, column_map: &ColumnMap) -> Result<Vec<Task
 }
 
 fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypoint, String> {
-    let name = record.get(column_map.name).ok_or("Missing 'name' field")?;
-
+    let name = record.get(column_map.name).unwrap_or_default();
     if name.is_empty() {
         return Err("Name field cannot be empty".into());
     }
@@ -231,65 +230,46 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
         .unwrap_or_default()
         .to_string();
 
-    let lat_str = record.get(column_map.lat).ok_or("Missing 'lat' field")?;
+    let lat_str = record.get(column_map.lat).unwrap_or_default();
     let latitude = parse_latitude(lat_str)?;
 
-    let lon_str = record.get(column_map.lon).ok_or("Missing 'lon' field")?;
+    let lon_str = record.get(column_map.lon).unwrap_or_default();
     let longitude = parse_longitude(lon_str)?;
 
-    let elev_str = record.get(column_map.elev).ok_or("Missing 'elev' field")?;
+    let elev_str = record.get(column_map.elev).unwrap_or_default();
     let elevation = elev_str.parse()?;
 
-    let style_str = record
-        .get(column_map.style)
-        .ok_or("Missing 'style' field")?;
+    let style_str = record.get(column_map.style).unwrap_or_default();
     let style = parse_waypoint_style(style_str)?;
 
-    let runway_direction = column_map
-        .rwdir
-        .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
+    let runway_direction = column_map.rwdir.and_then(|idx| record.get(idx));
+    let runway_direction = runway_direction.filter(|s| !s.is_empty());
+    let runway_direction = runway_direction
         .map(|s| {
-            s.parse::<u16>()
+            s.parse()
                 .map_err(|_| format!("Invalid runway direction: {s}"))
         })
         .transpose()?;
 
-    let runway_length = column_map
-        .rwlen
-        .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
-        .map(|s| s.parse())
-        .transpose()?;
+    let runway_length = column_map.rwlen.and_then(|idx| record.get(idx));
+    let runway_length = runway_length.filter(|s| !s.is_empty());
+    let runway_length = runway_length.map(|s| s.parse()).transpose()?;
 
-    let runway_width = column_map
-        .rwwidth
-        .and_then(|idx| record.get(idx))
-        .filter(|s| !s.is_empty())
-        .map(|s| s.parse())
-        .transpose()?;
+    let runway_width = column_map.rwwidth.and_then(|idx| record.get(idx));
+    let runway_width = runway_width.filter(|s| !s.is_empty());
+    let runway_width = runway_width.map(|s| s.parse()).transpose()?;
 
-    let frequency = column_map
-        .freq
-        .and_then(|idx| record.get(idx))
-        .unwrap_or_default()
-        .to_string();
+    let frequency = column_map.freq.and_then(|idx| record.get(idx));
+    let frequency = frequency.unwrap_or_default().to_string();
 
-    let description = column_map
-        .desc
-        .and_then(|idx| record.get(idx))
-        .unwrap_or_default()
-        .to_string();
+    let description = column_map.desc.and_then(|idx| record.get(idx));
+    let description = description.unwrap_or_default().to_string();
 
-    let userdata = column_map
-        .userdata
-        .and_then(|idx| record.get(idx))
-        .unwrap_or_default()
-        .to_string();
+    let userdata = column_map.userdata.and_then(|idx| record.get(idx));
+    let userdata = userdata.unwrap_or_default().to_string();
 
-    let pictures = column_map
-        .pics
-        .and_then(|idx| record.get(idx))
+    let pictures = column_map.pics.and_then(|idx| record.get(idx));
+    let pictures = pictures
         .map(|s| {
             s.split(';')
                 .map(|p| p.trim().to_string())

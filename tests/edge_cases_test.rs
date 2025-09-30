@@ -69,7 +69,7 @@ fn test_truncated_file_incomplete_row() {
 "Test",T,XX,5147.809N,00405.003W
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Missing 'elev' field");
+    insta::assert_snapshot!(err, @"Parse error: Invalid elevation:");
 }
 
 #[test]
