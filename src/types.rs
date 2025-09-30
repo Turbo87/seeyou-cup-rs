@@ -1,3 +1,5 @@
+use std::fmt::{Display, Formatter};
+
 #[derive(Debug)]
 pub struct Waypoint {
     pub name: String,
@@ -34,6 +36,15 @@ impl Elevation {
         match self {
             Elevation::Meters(m) => m / 0.3048,
             Elevation::Feet(ft) => *ft,
+        }
+    }
+}
+
+impl Display for Elevation {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Elevation::Meters(m) => write!(f, "{}m", m),
+            Elevation::Feet(ft) => write!(f, "{}ft", ft),
         }
     }
 }

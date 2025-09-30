@@ -76,7 +76,7 @@ fn write_waypoint<W: std::io::Write>(
         &waypoint.country,
         &format_latitude(waypoint.lat),
         &format_longitude(waypoint.lon),
-        &format_elevation(&waypoint.elev),
+        &waypoint.elev.to_string(),
         &(waypoint.style as u8).to_string(),
         &waypoint
             .runway_dir
@@ -117,13 +117,6 @@ fn format_longitude(lon: f64) -> String {
     format!("{:03}{:06.3}{}", degrees, minutes, hemisphere)
 }
 
-fn format_elevation(elev: &Elevation) -> String {
-    match elev {
-        Elevation::Meters(m) => format!("{}m", m),
-        Elevation::Feet(ft) => format!("{}ft", ft),
-    }
-}
-
 fn format_runway_dimension(dim: &RunwayDimension) -> String {
     match dim {
         RunwayDimension::Meters(m) => format!("{}m", m),
@@ -151,7 +144,7 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
             &waypoint.country,
             &format_latitude(waypoint.lat),
             &format_longitude(waypoint.lon),
-            &format_elevation(&waypoint.elev),
+            &waypoint.elev.to_string(),
             &(waypoint.style as u8).to_string(),
             &waypoint
                 .runway_dir
@@ -195,7 +188,7 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
         parts.push(format!("NearDis={}", format_distance(near_dis)));
     }
     if let Some(near_alt) = &options.near_alt {
-        parts.push(format!("NearAlt={}", format_elevation(near_alt)));
+        parts.push(format!("NearAlt={near_alt}"));
     }
     if let Some(min_dis) = options.min_dis {
         parts.push(format!("MinDis={}", if min_dis { "True" } else { "False" }));
