@@ -4,18 +4,28 @@ use crate::CupEncoding;
 use crate::CupFile;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
+use std::borrow::Cow;
 use std::io::Read;
 
-pub fn parse<R: Read>(mut reader: R, encoding: CupEncoding) -> Result<CupFile, CupError> {
+pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, CupError> {
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes)?;
 
+    let content = match encoding {
+        Some(enc) => decode_with_encoding(&bytes, enc)?,
+        None => decode_auto(&bytes)?,
+    };
+
+    parse_content(&content)
+}
+
+fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, str>, CupError> {
     let encoding_impl: &'static Encoding = match encoding {
         CupEncoding::Utf8 => UTF_8,
         CupEncoding::Windows1252 => WINDOWS_1252,
     };
 
-    let (content, _, had_errors) = encoding_impl.decode(&bytes);
+    let (content, _, had_errors) = encoding_impl.decode(bytes);
     if had_errors {
         return Err(CupError::Encoding(format!(
             "Failed to decode with {:?}",
@@ -23,7 +33,19 @@ pub fn parse<R: Read>(mut reader: R, encoding: CupEncoding) -> Result<CupFile, C
         )));
     }
 
-    parse_content(&content)
+    Ok(content)
+}
+
+fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
+    // Try UTF-8 first (strict)
+    match std::str::from_utf8(bytes) {
+        Ok(s) => Ok(s.into()),
+        Err(_) => {
+            // Fall back to Windows-1252 (never fails, maps all bytes)
+            let (content, _, _) = WINDOWS_1252.decode(bytes);
+            Ok(content)
+        }
+    }
 }
 
 fn parse_content(content: &str) -> Result<CupFile, CupError> {

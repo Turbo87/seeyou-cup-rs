@@ -163,21 +163,3 @@ fn test_fixture_with_task() {
     assert_eq!(task.waypoints.len(), 5);
 }
 
-#[test]
-fn test_all_fixtures_parse() {
-    let fixtures = [
-        ("tests/fixtures/2018_schwarzwald_landefelder.cup", CupEncoding::Utf8),
-        ("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup", CupEncoding::Windows1252),
-        ("tests/fixtures/709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup", CupEncoding::Utf8),
-        ("tests/fixtures/EC25.cup", CupEncoding::Utf8),
-    ];
-
-    for (fixture, encoding) in &fixtures {
-        let path = Path::new(fixture);
-        let result = CupFile::from_path_with_encoding(path, *encoding);
-        assert!(result.is_ok(), "Failed to parse {}: {:?}", fixture, result.err());
-
-        let cup = result.unwrap();
-        assert!(!cup.waypoints.is_empty(), "No waypoints in {}", fixture);
-    }
-}

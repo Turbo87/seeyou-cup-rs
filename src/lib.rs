@@ -23,18 +23,19 @@ pub struct CupFile {
 
 impl CupFile {
     pub fn from_reader<R: Read>(reader: R) -> Result<Self, CupError> {
-        Self::from_reader_with_encoding(reader, CupEncoding::Utf8)
+        parser::parse(reader, None)
     }
 
     pub fn from_reader_with_encoding<R: Read>(
         reader: R,
         encoding: CupEncoding,
     ) -> Result<Self, CupError> {
-        parser::parse(reader, encoding)
+        parser::parse(reader, Some(encoding))
     }
 
     pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, CupError> {
-        Self::from_path_with_encoding(path, CupEncoding::Utf8)
+        let file = File::open(path)?;
+        Self::from_reader(file)
     }
 
     pub fn from_path_with_encoding<P: AsRef<Path>>(
