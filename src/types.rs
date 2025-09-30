@@ -172,6 +172,41 @@ impl Display for Distance {
     }
 }
 
+impl FromStr for Distance {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+
+        if let Some(value_str) = s.strip_suffix("km") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid distance value: {}", s))?;
+            Ok(Distance::Kilometers(value))
+        } else if let Some(value_str) = s.strip_suffix("nm") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid distance value: {}", s))?;
+            Ok(Distance::NauticalMiles(value))
+        } else if let Some(value_str) = s.strip_suffix("ml") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid distance value: {}", s))?;
+            Ok(Distance::StatuteMiles(value))
+        } else if let Some(value_str) = s.strip_suffix('m') {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid distance value: {}", s))?;
+            Ok(Distance::Meters(value))
+        } else {
+            let value: f64 = s
+                .parse()
+                .map_err(|_| format!("Invalid distance value: {}", s))?;
+            Ok(Distance::Meters(value))
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaypointStyle {
     Unknown = 0,

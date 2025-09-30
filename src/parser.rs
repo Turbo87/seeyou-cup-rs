@@ -479,7 +479,7 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
                 "NoStart" => options.no_start = Some(value.to_string()),
                 "TaskTime" => options.task_time = Some(value.to_string()),
                 "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
-                "NearDis" => options.near_dis = Some(parse_distance(value)?),
+                "NearDis" => options.near_dis = Some(value.parse().map_err(CupError::Parse)?),
                 "NearAlt" => {
                     options.near_alt = Some(value.parse().map_err(CupError::Parse)?)
                 }
@@ -495,37 +495,6 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
     }
 
     Ok(options)
-}
-
-fn parse_distance(s: &str) -> Result<Distance, CupError> {
-    let s = s.trim();
-
-    if let Some(value_str) = s.strip_suffix("km") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
-        Ok(Distance::Kilometers(value))
-    } else if let Some(value_str) = s.strip_suffix("nm") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
-        Ok(Distance::NauticalMiles(value))
-    } else if let Some(value_str) = s.strip_suffix("ml") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
-        Ok(Distance::StatuteMiles(value))
-    } else if let Some(value_str) = s.strip_suffix('m') {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
-        Ok(Distance::Meters(value))
-    } else {
-        let value: f64 = s
-            .parse()
-            .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
-        Ok(Distance::Meters(value))
-    }
 }
 
 fn parse_obszone_line(line: &str) -> Result<ObservationZone, CupError> {
@@ -550,9 +519,9 @@ fn parse_obszone_line(line: &str) -> Result<ObservationZone, CupError> {
                         style = ObsZoneStyle::from_u8(val);
                     }
                 }
-                "R1" => r1 = Some(parse_distance(value)?),
+                "R1" => r1 = Some(value.parse().map_err(CupError::Parse)?),
                 "A1" => a1 = value.parse().ok(),
-                "R2" => r2 = Some(parse_distance(value)?),
+                "R2" => r2 = Some(value.parse().map_err(CupError::Parse)?),
                 "A2" => a2 = value.parse().ok(),
                 "A12" => a12 = value.parse().ok(),
                 "Line" => line_val = Some(value == "1" || value.eq_ignore_ascii_case("true")),
