@@ -1,6 +1,6 @@
 # seeyou-cup
 
-A Rust library for parsing and writing [SeeYou CUP files](docs/SeeYou_CUP_file_format.pdf), commonly used in aviation and gliding for waypoint and task data.
+A Rust library for parsing and writing [SeeYou CUP files](https://downloads.naviter.com/docs/SeeYou_CUP_file_format.pdf), commonly used in aviation and gliding for waypoint and task data.
 
 ## Overview
 
