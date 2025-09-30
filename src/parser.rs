@@ -425,9 +425,8 @@ fn parse_elevation(s: &str) -> Result<Elevation, String> {
         Ok(Elevation::Meters(value))
     } else {
         // Check for invalid units by looking for any alphabetic character
-        if s.chars().any(|c| c.is_alphabetic()) {
+        if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
             // Extract the unit suffix
-            let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
             let unit = &s[unit_start..];
             return Err(format!("Invalid elevation unit: {unit}"));
         }
