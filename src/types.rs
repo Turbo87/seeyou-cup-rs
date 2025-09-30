@@ -190,9 +190,9 @@ pub struct TaskOptions {
 pub struct ObservationZone {
     pub index: u32,
     pub style: ObsZoneStyle,
-    pub r1: Option<RunwayDimension>,
+    pub r1: Option<Distance>,
     pub a1: Option<f64>,
-    pub r2: Option<RunwayDimension>,
+    pub r2: Option<Distance>,
     pub a2: Option<f64>,
     pub a12: Option<f64>,
     pub line: Option<bool>,

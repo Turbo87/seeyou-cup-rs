@@ -1,5 +1,5 @@
 use claims::{assert_matches, assert_ok, assert_some, assert_some_eq};
-use seeyou_cup::{CupFile, Distance, Elevation, ObsZoneStyle, RunwayDimension, WaypointStyle};
+use seeyou_cup::{CupFile, Distance, Elevation, ObsZoneStyle, WaypointStyle};
 use std::str::FromStr;
 
 #[test]
@@ -228,7 +228,7 @@ ObsZone=1,Style=0,R1=35000m,A1=30,R2=12000m,A2=12,A12=123.4
     let oz0 = &cup.tasks[0].observation_zones[0];
     assert_eq!(oz0.index, 0);
     assert_eq!(oz0.style, ObsZoneStyle::ToNextPoint);
-    assert_matches!(&oz0.r1, Some(RunwayDimension::Meters(400.0)));
+    assert_matches!(&oz0.r1, Some(Distance::Meters(400.0)));
     assert_some_eq!(oz0.a1, 180.0);
     assert_some_eq!(oz0.line, true);
 }
@@ -277,7 +277,7 @@ ObsZone=0,Style=0,R1=500m
 
     let cup = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
-    assert_matches!(&oz.r1, Some(RunwayDimension::Meters(500.0)));
+    assert_matches!(&oz.r1, Some(Distance::Meters(500.0)));
 }
 
 #[test]
@@ -305,7 +305,7 @@ ObsZone=0,Style=0,R1=500m,R2=1000m
 
     let cup = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
-    assert_matches!(&oz.r2, Some(RunwayDimension::Meters(1000.0)));
+    assert_matches!(&oz.r2, Some(Distance::Meters(1000.0)));
 }
 
 #[test]

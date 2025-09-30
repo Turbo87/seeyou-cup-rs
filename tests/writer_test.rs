@@ -284,9 +284,9 @@ fn test_task_with_all_features() {
         observation_zones: vec![ObservationZone {
             index: 0,
             style: ObsZoneStyle::Fixed,
-            r1: Some(RunwayDimension::Meters(500.0)),
+            r1: Some(Distance::Meters(500.0)),
             a1: Some(90.0),
-            r2: Some(RunwayDimension::Meters(1000.0)),
+            r2: Some(Distance::Meters(1000.0)),
             a2: Some(45.0),
             a12: Some(123.4),
             line: Some(true),
@@ -383,7 +383,7 @@ fn test_multiple_tasks() {
         observation_zones: vec![ObservationZone {
             index: 0,
             style: ObsZoneStyle::Fixed,
-            r1: Some(RunwayDimension::Meters(1000.0)),
+            r1: Some(Distance::Meters(1000.0)),
             a1: Some(180.0),
             r2: None,
             a2: None,
@@ -445,9 +445,9 @@ fn test_multiple_tasks() {
         observation_zones: vec![ObservationZone {
             index: 1,
             style: ObsZoneStyle::Symmetrical,
-            r1: Some(RunwayDimension::Meters(500.0)),
+            r1: Some(Distance::Meters(500.0)),
             a1: None,
-            r2: Some(RunwayDimension::Meters(2000.0)),
+            r2: Some(Distance::Meters(2000.0)),
             a2: Some(30.0),
             a12: Some(45.0),
             line: Some(true),

@@ -226,7 +226,10 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
     let name = name.to_string();
 
     let code = record.get(column_map.code).unwrap_or_default().to_string();
-    let country = record.get(column_map.country).unwrap_or_default().to_string();
+    let country = record
+        .get(column_map.country)
+        .unwrap_or_default()
+        .to_string();
 
     let lat_str = record.get(column_map.lat).ok_or("Missing 'lat' field")?;
     let lat = parse_latitude(lat_str)?;
@@ -237,7 +240,9 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
     let elev_str = record.get(column_map.elev).ok_or("Missing 'elev' field")?;
     let elev = parse_elevation(elev_str)?;
 
-    let style_str = record.get(column_map.style).ok_or("Missing 'style' field")?;
+    let style_str = record
+        .get(column_map.style)
+        .ok_or("Missing 'style' field")?;
     let style = parse_waypoint_style(style_str)?;
 
     let runway_dir = column_map
@@ -596,9 +601,9 @@ fn parse_obszone_line(line: &str) -> Result<ObservationZone, CupError> {
                         style = ObsZoneStyle::from_u8(val);
                     }
                 }
-                "R1" => r1 = Some(parse_runway_dimension(value).map_err(CupError::Parse)?),
+                "R1" => r1 = Some(parse_distance(value)?),
                 "A1" => a1 = value.parse().ok(),
-                "R2" => r2 = Some(parse_runway_dimension(value).map_err(CupError::Parse)?),
+                "R2" => r2 = Some(parse_distance(value)?),
                 "A2" => a2 = value.parse().ok(),
                 "A12" => a12 = value.parse().ok(),
                 "Line" => line_val = Some(value == "1" || value.eq_ignore_ascii_case("true")),
