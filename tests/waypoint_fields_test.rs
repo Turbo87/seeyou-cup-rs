@@ -182,6 +182,21 @@ fn test_elevation_decimal_separator_must_be_point() {
 }
 
 #[test]
+fn test_mixed_elevation_units_in_same_file() {
+    let input = r#"name,code,country,lat,lon,elev,style
+"Test1",T1,XX,5147.809N,00405.003W,500m,1
+"Test2",T2,XX,5147.809N,00405.003W,1640ft,1
+"Test3",T3,XX,5147.809N,00405.003W,300,1
+"#;
+
+    let cup = assert_ok!(CupFile::from_str(input));
+    assert_eq!(cup.waypoints.len(), 3);
+    assert_matches!(&cup.waypoints[0].elev, Elevation::Meters(500.0));
+    assert_matches!(&cup.waypoints[1].elev, Elevation::Feet(1640.0));
+    assert_matches!(&cup.waypoints[2].elev, Elevation::Meters(300.0));
+}
+
+#[test]
 fn test_invalid_waypoint_style_defaults_to_unknown() {
     let input = r#"name,code,country,lat,lon,elev,style
 "Test",T,XX,5147.809N,00405.003W,0m,99
