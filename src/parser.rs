@@ -5,7 +5,6 @@ use crate::types::*;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::borrow::Cow;
-use std::collections::HashMap;
 use std::io::Read;
 
 pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, CupError> {
@@ -52,8 +51,8 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
 fn parse_content(content: &str) -> Result<CupFile, CupError> {
     let (waypoint_section, task_section) = split_sections(content);
 
-    let (waypoints, waypoint_headers) = parse_waypoints(waypoint_section)?;
-    let tasks = parse_tasks(task_section, &waypoint_headers)?;
+    let (waypoints, column_map) = parse_waypoints(waypoint_section)?;
+    let tasks = parse_tasks(task_section, &column_map)?;
 
     Ok(CupFile { waypoints, tasks })
 }
@@ -66,15 +65,78 @@ fn split_sections(content: &str) -> (&str, Option<&str>) {
     }
 }
 
-fn build_column_map(headers: &StringRecord) -> HashMap<String, usize> {
-    headers
-        .iter()
-        .enumerate()
-        .map(|(idx, name)| (name.to_lowercase(), idx))
-        .collect()
+struct ColumnMap {
+    name: usize,
+    code: usize,
+    country: usize,
+    lat: usize,
+    lon: usize,
+    elev: usize,
+    style: usize,
+    rwdir: Option<usize>,
+    rwlen: Option<usize>,
+    rwwidth: Option<usize>,
+    freq: Option<usize>,
+    desc: Option<usize>,
+    userdata: Option<usize>,
+    pics: Option<usize>,
 }
 
-fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, HashMap<String, usize>), CupError> {
+fn build_column_map(headers: &StringRecord) -> Result<ColumnMap, String> {
+    let mut name = None;
+    let mut code = None;
+    let mut country = None;
+    let mut lat = None;
+    let mut lon = None;
+    let mut elev = None;
+    let mut style = None;
+    let mut rwdir = None;
+    let mut rwlen = None;
+    let mut rwwidth = None;
+    let mut freq = None;
+    let mut desc = None;
+    let mut userdata = None;
+    let mut pics = None;
+
+    for (idx, header) in headers.iter().enumerate() {
+        match header.to_lowercase().as_str() {
+            "name" => name = Some(idx),
+            "code" => code = Some(idx),
+            "country" => country = Some(idx),
+            "lat" => lat = Some(idx),
+            "lon" => lon = Some(idx),
+            "elev" => elev = Some(idx),
+            "style" => style = Some(idx),
+            "rwdir" => rwdir = Some(idx),
+            "rwlen" => rwlen = Some(idx),
+            "rwwidth" => rwwidth = Some(idx),
+            "freq" => freq = Some(idx),
+            "desc" => desc = Some(idx),
+            "userdata" => userdata = Some(idx),
+            "pics" => pics = Some(idx),
+            _ => {}
+        }
+    }
+
+    Ok(ColumnMap {
+        name: name.ok_or("Missing required column: name")?,
+        code: code.ok_or("Missing required column: code")?,
+        country: country.ok_or("Missing required column: country")?,
+        lat: lat.ok_or("Missing required column: lat")?,
+        lon: lon.ok_or("Missing required column: lon")?,
+        elev: elev.ok_or("Missing required column: elev")?,
+        style: style.ok_or("Missing required column: style")?,
+        rwdir,
+        rwlen,
+        rwwidth,
+        freq,
+        desc,
+        userdata,
+        pics,
+    })
+}
+
+fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, ColumnMap), CupError> {
     if section.trim().is_empty() {
         return Err(CupError::Parse("Empty file".to_string()));
     }
@@ -84,7 +146,7 @@ fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, HashMap<String, usiz
         .from_reader(section.as_bytes());
 
     let headers = csv_reader.headers()?.clone();
-    let column_map = build_column_map(&headers);
+    let column_map = build_column_map(&headers).map_err(CupError::Parse)?;
 
     let mut waypoints = Vec::new();
     for result in csv_reader.records() {
@@ -96,10 +158,7 @@ fn parse_waypoints(section: &str) -> Result<(Vec<Waypoint>, HashMap<String, usiz
     Ok((waypoints, column_map))
 }
 
-fn parse_tasks(
-    section: Option<&str>,
-    column_map: &HashMap<String, usize>,
-) -> Result<Vec<Task>, CupError> {
+fn parse_tasks(section: Option<&str>, column_map: &ColumnMap) -> Result<Vec<Task>, CupError> {
     let Some(section) = section else {
         return Ok(Vec::new());
     };
@@ -157,17 +216,8 @@ fn parse_tasks(
     Ok(tasks)
 }
 
-fn parse_waypoint(
-    column_map: &HashMap<String, usize>,
-    record: &StringRecord,
-) -> Result<Waypoint, String> {
-    let get_field = |key: &str| -> Option<&str> {
-        column_map
-            .get(&key.to_lowercase())
-            .and_then(|&idx| record.get(idx))
-    };
-
-    let name = get_field("name").ok_or("Missing 'name' field")?;
+fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypoint, String> {
+    let name = record.get(column_map.name).ok_or("Missing 'name' field")?;
 
     if name.is_empty() {
         return Err("Name field cannot be empty".into());
@@ -175,22 +225,24 @@ fn parse_waypoint(
 
     let name = name.to_string();
 
-    let code = get_field("code").unwrap_or_default().to_string();
-    let country = get_field("country").unwrap_or_default().to_string();
+    let code = record.get(column_map.code).unwrap_or_default().to_string();
+    let country = record.get(column_map.country).unwrap_or_default().to_string();
 
-    let lat_str = get_field("lat").ok_or("Missing 'lat' field")?;
+    let lat_str = record.get(column_map.lat).ok_or("Missing 'lat' field")?;
     let lat = parse_latitude(lat_str)?;
 
-    let lon_str = get_field("lon").ok_or("Missing 'lon' field")?;
+    let lon_str = record.get(column_map.lon).ok_or("Missing 'lon' field")?;
     let lon = parse_longitude(lon_str)?;
 
-    let elev_str = get_field("elev").ok_or("Missing 'elev' field")?;
+    let elev_str = record.get(column_map.elev).ok_or("Missing 'elev' field")?;
     let elev = parse_elevation(elev_str)?;
 
-    let style_str = get_field("style").ok_or("Missing 'style' field")?;
+    let style_str = record.get(column_map.style).ok_or("Missing 'style' field")?;
     let style = parse_waypoint_style(style_str)?;
 
-    let runway_dir = get_field("rwdir")
+    let runway_dir = column_map
+        .rwdir
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(|s| {
             s.parse::<u16>()
@@ -198,29 +250,41 @@ fn parse_waypoint(
         })
         .transpose()?;
 
-    let runway_len = get_field("rwlen")
+    let runway_len = column_map
+        .rwlen
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(parse_runway_dimension)
         .transpose()?;
 
-    let runway_width = get_field("rwwidth")
+    let runway_width = column_map
+        .rwwidth
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(parse_runway_dimension)
         .transpose()?;
 
-    let freq = get_field("freq")
+    let freq = column_map
+        .freq
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
-    let desc = get_field("desc")
+    let desc = column_map
+        .desc
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
-    let userdata = get_field("userdata")
+    let userdata = column_map
+        .userdata
+        .and_then(|idx| record.get(idx))
         .filter(|s| !s.is_empty())
         .map(str::to_string);
 
-    let pics = get_field("pics")
+    let pics = column_map
+        .pics
+        .and_then(|idx| record.get(idx))
         .map(|s| {
             s.split(';')
                 .map(|p| p.trim().to_string())
@@ -573,7 +637,7 @@ fn parse_starts_line(line: &str) -> Result<Vec<String>, CupError> {
 
 fn parse_inline_waypoint_line_with_index(
     line: &str,
-    column_map: &HashMap<String, usize>,
+    column_map: &ColumnMap,
 ) -> Result<(usize, Waypoint), CupError> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
 

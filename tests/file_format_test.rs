@@ -33,9 +33,9 @@ fn test_missing_optional_columns_after_style() {
 
 #[test]
 fn test_header_with_subset_of_fields() {
-    let input = r#"name,lat,lon,elev,style
-"Waypoint1",5147.809N,00405.003W,500m,1
-"Waypoint2",5148.000N,00406.000W,600m,1
+    let input = r#"name,code,country,lat,lon,elev,style
+"Waypoint1",,,5147.809N,00405.003W,500m,1
+"Waypoint2",,,5148.000N,00406.000W,600m,1
 "#;
 
     let cup = assert_ok!(CupFile::from_str(input));

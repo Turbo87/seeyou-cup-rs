@@ -23,7 +23,7 @@ fn test_missing_required_field_latitude() {
 "Test",T,XX,00405.003W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Missing 'lat' field");
+    insta::assert_snapshot!(err, @"Parse error: Missing required column: lat");
 }
 
 #[test]
@@ -32,7 +32,7 @@ fn test_missing_required_field_longitude() {
 "Test",T,XX,5147.809N,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Missing 'lon' field");
+    insta::assert_snapshot!(err, @"Parse error: Missing required column: lon");
 }
 
 #[test]
@@ -41,7 +41,7 @@ fn test_missing_required_field_elevation() {
 "Test",T,XX,5147.809N,00405.003W,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Missing 'elev' field");
+    insta::assert_snapshot!(err, @"Parse error: Missing required column: elev");
 }
 
 #[test]
@@ -50,7 +50,7 @@ fn test_missing_required_field_style() {
 "Test",T,XX,5147.809N,00405.003W,500m
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Missing 'style' field");
+    insta::assert_snapshot!(err, @"Parse error: Missing required column: style");
 }
 
 #[test]
