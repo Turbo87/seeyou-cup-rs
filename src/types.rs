@@ -1,0 +1,190 @@
+pub struct Waypoint {
+    pub name: String,
+    pub code: String,
+    pub country: String,
+    pub lat: f64,
+    pub lon: f64,
+    pub elev: Elevation,
+    pub style: WaypointStyle,
+    pub runway_dir: Option<u16>,
+    pub runway_len: Option<RunwayDimension>,
+    pub runway_width: Option<RunwayDimension>,
+    pub freq: Option<String>,
+    pub desc: Option<String>,
+    pub userdata: Option<String>,
+    pub pics: Vec<String>,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Elevation {
+    Meters(f64),
+    Feet(f64),
+}
+
+impl Elevation {
+    pub fn to_meters(&self) -> f64 {
+        match self {
+            Elevation::Meters(m) => *m,
+            Elevation::Feet(ft) => ft * 0.3048,
+        }
+    }
+
+    pub fn to_feet(&self) -> f64 {
+        match self {
+            Elevation::Meters(m) => m / 0.3048,
+            Elevation::Feet(ft) => *ft,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum RunwayDimension {
+    Meters(f64),
+    NauticalMiles(f64),
+    StatuteMiles(f64),
+}
+
+impl RunwayDimension {
+    pub fn to_meters(&self) -> f64 {
+        match self {
+            RunwayDimension::Meters(m) => *m,
+            RunwayDimension::NauticalMiles(nm) => nm * 1852.0,
+            RunwayDimension::StatuteMiles(mi) => mi * 1609.344,
+        }
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+pub enum Distance {
+    Meters(f64),
+    Kilometers(f64),
+    NauticalMiles(f64),
+    StatuteMiles(f64),
+}
+
+impl Distance {
+    pub fn to_meters(&self) -> f64 {
+        match self {
+            Distance::Meters(m) => *m,
+            Distance::Kilometers(km) => km * 1000.0,
+            Distance::NauticalMiles(nm) => nm * 1852.0,
+            Distance::StatuteMiles(mi) => mi * 1609.344,
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum WaypointStyle {
+    Unknown = 0,
+    Waypoint = 1,
+    GrassAirfield = 2,
+    Outlanding = 3,
+    GlidingAirfield = 4,
+    SolidAirfield = 5,
+    MountainPass = 6,
+    MountainTop = 7,
+    TransmitterMast = 8,
+    Vor = 9,
+    Ndb = 10,
+    CoolingTower = 11,
+    Dam = 12,
+    Tunnel = 13,
+    Bridge = 14,
+    PowerPlant = 15,
+    Castle = 16,
+    Intersection = 17,
+    Marker = 18,
+    ControlPoint = 19,
+    PgTakeOff = 20,
+    PgLandingZone = 21,
+}
+
+impl WaypointStyle {
+    pub fn from_u8(value: u8) -> Self {
+        match value {
+            0 => WaypointStyle::Unknown,
+            1 => WaypointStyle::Waypoint,
+            2 => WaypointStyle::GrassAirfield,
+            3 => WaypointStyle::Outlanding,
+            4 => WaypointStyle::GlidingAirfield,
+            5 => WaypointStyle::SolidAirfield,
+            6 => WaypointStyle::MountainPass,
+            7 => WaypointStyle::MountainTop,
+            8 => WaypointStyle::TransmitterMast,
+            9 => WaypointStyle::Vor,
+            10 => WaypointStyle::Ndb,
+            11 => WaypointStyle::CoolingTower,
+            12 => WaypointStyle::Dam,
+            13 => WaypointStyle::Tunnel,
+            14 => WaypointStyle::Bridge,
+            15 => WaypointStyle::PowerPlant,
+            16 => WaypointStyle::Castle,
+            17 => WaypointStyle::Intersection,
+            18 => WaypointStyle::Marker,
+            19 => WaypointStyle::ControlPoint,
+            20 => WaypointStyle::PgTakeOff,
+            21 => WaypointStyle::PgLandingZone,
+            _ => WaypointStyle::Unknown,
+        }
+    }
+}
+
+pub struct Task {
+    pub description: Option<String>,
+    pub waypoints: Vec<TaskPoint>,
+    pub options: Option<TaskOptions>,
+    pub observation_zones: Vec<ObservationZone>,
+    pub multiple_starts: Vec<String>,
+}
+
+pub enum TaskPoint {
+    Reference(String),
+    Inline(Waypoint),
+}
+
+pub struct TaskOptions {
+    pub no_start: Option<String>,
+    pub task_time: Option<String>,
+    pub wp_dis: Option<bool>,
+    pub near_dis: Option<Distance>,
+    pub near_alt: Option<Elevation>,
+    pub min_dis: Option<bool>,
+    pub random_order: Option<bool>,
+    pub max_pts: Option<u32>,
+    pub before_pts: Option<u32>,
+    pub after_pts: Option<u32>,
+    pub bonus: Option<f64>,
+}
+
+pub struct ObservationZone {
+    pub index: u32,
+    pub style: ObsZoneStyle,
+    pub r1: Option<RunwayDimension>,
+    pub a1: Option<f64>,
+    pub r2: Option<RunwayDimension>,
+    pub a2: Option<f64>,
+    pub a12: Option<f64>,
+    pub line: Option<bool>,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum ObsZoneStyle {
+    Fixed = 0,
+    Symmetrical = 1,
+    ToNextPoint = 2,
+    ToPreviousPoint = 3,
+    ToStartPoint = 4,
+}
+
+impl ObsZoneStyle {
+    pub fn from_u8(value: u8) -> Option<Self> {
+        match value {
+            0 => Some(ObsZoneStyle::Fixed),
+            1 => Some(ObsZoneStyle::Symmetrical),
+            2 => Some(ObsZoneStyle::ToNextPoint),
+            3 => Some(ObsZoneStyle::ToPreviousPoint),
+            4 => Some(ObsZoneStyle::ToStartPoint),
+            _ => None,
+        }
+    }
+}
