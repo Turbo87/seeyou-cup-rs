@@ -1,4 +1,5 @@
 use claims::{assert_ok, assert_some_eq};
+use insta::assert_debug_snapshot;
 use seeyou_cup::CupFile;
 use std::path::Path;
 use std::str::FromStr;
@@ -66,14 +67,5 @@ fn test_fixture_ec25() {
 fn test_fixture_with_task() {
     let path = Path::new("tests/fixtures/709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup");
     let cup = assert_ok!(CupFile::from_path(path));
-
-    assert_eq!(cup.waypoints.len(), 4);
-    assert_eq!(cup.tasks.len(), 1);
-
-    let task = &cup.tasks[0];
-    assert_some_eq!(
-        &task.description,
-        "709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"
-    );
-    assert_eq!(task.waypoint_names.len(), 5);
+    assert_debug_snapshot!(cup);
 }

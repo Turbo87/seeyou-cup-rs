@@ -1,0 +1,193 @@
+---
+source: tests/integration_test.rs
+expression: cup
+---
+CupFile {
+    waypoints: [
+        Waypoint {
+            name: "Aachen Stolberg TV",
+            code: "",
+            country: "",
+            lat: 50.77875,
+            lon: 6.243633333333333,
+            elev: Meters(
+                287.0,
+            ),
+            style: Waypoint,
+            runway_dir: None,
+            runway_len: None,
+            runway_width: None,
+            freq: "",
+            desc: "",
+            userdata: "",
+            pics: [],
+        },
+        Waypoint {
+            name: "Wendepunkt",
+            code: "",
+            country: "",
+            lat: 49.17451666666667,
+            lon: 6.754866666666667,
+            elev: Meters(
+                280.0,
+            ),
+            style: Waypoint,
+            runway_dir: None,
+            runway_len: None,
+            runway_width: None,
+            freq: "",
+            desc: "",
+            userdata: "",
+            pics: [],
+        },
+        Waypoint {
+            name: "Helmstadter Berg",
+            code: "",
+            country: "",
+            lat: 49.776583333333335,
+            lon: 9.727233333333333,
+            elev: Meters(
+                347.0,
+            ),
+            style: Waypoint,
+            runway_dir: None,
+            runway_len: None,
+            runway_width: None,
+            freq: "",
+            desc: "",
+            userdata: "",
+            pics: [],
+        },
+        Waypoint {
+            name: "Linnich Station",
+            code: "",
+            country: "",
+            lat: 50.98445,
+            lon: 6.276033333333333,
+            elev: Meters(
+                61.0,
+            ),
+            style: Waypoint,
+            runway_dir: None,
+            runway_len: None,
+            runway_width: None,
+            freq: "",
+            desc: "",
+            userdata: "",
+            pics: [],
+        },
+    ],
+    tasks: [
+        Task {
+            description: Some(
+                "709 km · Dreieck · DMSt · Aachen Stolberg TV_282915",
+            ),
+            waypoint_names: [
+                "Aachen Stolberg TV",
+                "Wendepunkt",
+                "Helmstadter Berg",
+                "Linnich Station",
+                "Aachen Stolberg TV",
+            ],
+            options: Some(
+                TaskOptions {
+                    no_start: None,
+                    task_time: None,
+                    wp_dis: None,
+                    near_dis: None,
+                    near_alt: None,
+                    min_dis: None,
+                    random_order: None,
+                    max_pts: None,
+                    before_pts: None,
+                    after_pts: None,
+                    bonus: None,
+                },
+            ),
+            observation_zones: [
+                ObservationZone {
+                    index: 0,
+                    style: ToNextPoint,
+                    r1: Some(
+                        Meters(
+                            1000.0,
+                        ),
+                    ),
+                    a1: Some(
+                        180.0,
+                    ),
+                    r2: None,
+                    a2: None,
+                    a12: None,
+                    line: None,
+                },
+                ObservationZone {
+                    index: 1,
+                    style: Symmetrical,
+                    r1: Some(
+                        Meters(
+                            20000.0,
+                        ),
+                    ),
+                    a1: Some(
+                        45.0,
+                    ),
+                    r2: None,
+                    a2: None,
+                    a12: None,
+                    line: None,
+                },
+                ObservationZone {
+                    index: 2,
+                    style: Symmetrical,
+                    r1: Some(
+                        Meters(
+                            20000.0,
+                        ),
+                    ),
+                    a1: Some(
+                        45.0,
+                    ),
+                    r2: None,
+                    a2: None,
+                    a12: None,
+                    line: None,
+                },
+                ObservationZone {
+                    index: 3,
+                    style: Symmetrical,
+                    r1: Some(
+                        Meters(
+                            20000.0,
+                        ),
+                    ),
+                    a1: Some(
+                        45.0,
+                    ),
+                    r2: None,
+                    a2: None,
+                    a12: None,
+                    line: None,
+                },
+                ObservationZone {
+                    index: 4,
+                    style: ToPreviousPoint,
+                    r1: Some(
+                        Meters(
+                            1000.0,
+                        ),
+                    ),
+                    a1: Some(
+                        180.0,
+                    ),
+                    r2: None,
+                    a2: None,
+                    a12: None,
+                    line: None,
+                },
+            ],
+            points: [],
+            multiple_starts: [],
+        },
+    ],
+}
