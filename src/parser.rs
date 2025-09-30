@@ -238,7 +238,7 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
     let lon = parse_longitude(lon_str)?;
 
     let elev_str = record.get(column_map.elev).ok_or("Missing 'elev' field")?;
-    let elev = parse_elevation(elev_str)?;
+    let elev = elev_str.parse()?;
 
     let style_str = record
         .get(column_map.style)
@@ -410,34 +410,6 @@ fn parse_longitude(s: &str) -> Result<f64, String> {
     Ok(decimal_degrees)
 }
 
-fn parse_elevation(s: &str) -> Result<Elevation, String> {
-    let s = s.trim();
-
-    if let Some(value_str) = s.strip_suffix("ft") {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| format!("Invalid elevation value: {s}"))?;
-        Ok(Elevation::Feet(value))
-    } else if let Some(value_str) = s.strip_suffix('m') {
-        let value: f64 = value_str
-            .parse()
-            .map_err(|_| format!("Invalid elevation value: {s}"))?;
-        Ok(Elevation::Meters(value))
-    } else {
-        // Check for invalid units by looking for any alphabetic character
-        if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
-            // Extract the unit suffix
-            let unit = &s[unit_start..];
-            return Err(format!("Invalid elevation unit: {unit}"));
-        }
-
-        let value: f64 = s
-            .parse()
-            .map_err(|_| format!("Invalid elevation value: {s}"))?;
-        Ok(Elevation::Meters(value))
-    }
-}
-
 fn parse_waypoint_style(s: &str) -> Result<WaypointStyle, String> {
     let value: u8 = s
         .parse()
@@ -509,7 +481,7 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
                 "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
                 "NearDis" => options.near_dis = Some(parse_distance(value)?),
                 "NearAlt" => {
-                    options.near_alt = Some(parse_elevation(value).map_err(CupError::Parse)?)
+                    options.near_alt = Some(value.parse().map_err(CupError::Parse)?)
                 }
                 "MinDis" => options.min_dis = Some(value.eq_ignore_ascii_case("true")),
                 "RandomOrder" => options.random_order = Some(value.eq_ignore_ascii_case("true")),

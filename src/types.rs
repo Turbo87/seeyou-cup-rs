@@ -50,6 +50,36 @@ impl Display for Elevation {
     }
 }
 
+impl FromStr for Elevation {
+    type Err = String;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let s = s.trim();
+
+        if let Some(value_str) = s.strip_suffix("ft") {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid elevation value: {s}"))?;
+            Ok(Elevation::Feet(value))
+        } else if let Some(value_str) = s.strip_suffix('m') {
+            let value: f64 = value_str
+                .parse()
+                .map_err(|_| format!("Invalid elevation value: {s}"))?;
+            Ok(Elevation::Meters(value))
+        } else {
+            if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
+                let unit = &s[unit_start..];
+                return Err(format!("Invalid elevation unit: {unit}"));
+            }
+
+            let value: f64 = s
+                .parse()
+                .map_err(|_| format!("Invalid elevation value: {s}"))?;
+            Ok(Elevation::Meters(value))
+        }
+    }
+}
+
 #[derive(Debug, Clone, PartialEq)]
 pub enum RunwayDimension {
     Meters(f64),
