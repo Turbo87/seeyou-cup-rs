@@ -37,40 +37,6 @@ fn test_roundtrip() {
 }
 
 #[test]
-fn test_latitude_conversion() {
-    assert!((parse_lat("5147.809N") - 51.7968166).abs() < 0.0001);
-    assert!((parse_lat("5147.809S") - (-51.7968166)).abs() < 0.0001);
-}
-
-#[test]
-fn test_longitude_conversion() {
-    assert!((parse_lon("01410.467E") - 14.1744500).abs() < 0.0001);
-    assert!((parse_lon("00405.003W") - (-4.0833833)).abs() < 0.0001);
-}
-
-fn parse_lat(s: &str) -> f64 {
-    let input = format!(
-        r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
-"Test","T",XX,{},00000.000E,0m,1
-"#,
-        s
-    );
-    let cup = assert_ok!(CupFile::from_str(&input));
-    cup.waypoints[0].lat
-}
-
-fn parse_lon(s: &str) -> f64 {
-    let input = format!(
-        r#"name,code,country,lat,lon,elev,style,rwdir,rwlen,rwwidth,freq,desc,userdata,pics
-"Test","T",XX,0000.000N,{},0m,1
-"#,
-        s
-    );
-    let cup = assert_ok!(CupFile::from_str(&input));
-    cup.waypoints[0].lon
-}
-
-#[test]
 fn test_fixture_schwarzwald() {
     let path = Path::new("tests/fixtures/2018_schwarzwald_landefelder.cup");
     let cup = assert_ok!(CupFile::from_path(path));

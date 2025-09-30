@@ -615,6 +615,23 @@ fn parse_inline_waypoint_line_with_index(
 
     // Parse as a normal waypoint using the same headers as the waypoint section
     let waypoint = parse_waypoint(waypoint_headers, &waypoint_record)?;
-    
+
     Ok((point_index, waypoint))
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_latitude_conversion() {
+        assert!((parse_latitude("5147.809N").unwrap() - 51.7968166).abs() < 0.0001);
+        assert!((parse_latitude("5147.809S").unwrap() - (-51.7968166)).abs() < 0.0001);
+    }
+
+    #[test]
+    fn test_longitude_conversion() {
+        assert!((parse_longitude("01410.467E").unwrap() - 14.1744500).abs() < 0.0001);
+        assert!((parse_longitude("00405.003W").unwrap() - (-4.0833833)).abs() < 0.0001);
+    }
 }
