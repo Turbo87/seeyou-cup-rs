@@ -60,7 +60,7 @@ pub fn parse_tasks(
 
 fn parse_task_line(record: &StringRecord) -> Result<Task, CupError> {
     if record.is_empty() {
-        return Err(CupError::Parse("Empty task line".to_string()));
+        return Err(CupError::parse("Empty task line"));
     }
 
     let description = if record.get(0).map(|s| s.is_empty()).unwrap_or(true) {
@@ -108,8 +108,8 @@ fn parse_options_line(record: &StringRecord) -> Result<TaskOptions, CupError> {
                 "NoStart" => options.no_start = Some(value.to_string()),
                 "TaskTime" => options.task_time = Some(value.to_string()),
                 "WpDis" => options.wp_dis = Some(value.eq_ignore_ascii_case("true")),
-                "NearDis" => options.near_dis = Some(value.parse().map_err(CupError::Parse)?),
-                "NearAlt" => options.near_alt = Some(value.parse().map_err(CupError::Parse)?),
+                "NearDis" => options.near_dis = Some(value.parse().map_err(CupError::parse)?),
+                "NearAlt" => options.near_alt = Some(value.parse().map_err(CupError::parse)?),
                 "MinDis" => options.min_dis = Some(value.eq_ignore_ascii_case("true")),
                 "RandomOrder" => options.random_order = Some(value.eq_ignore_ascii_case("true")),
                 "MaxPts" => options.max_pts = value.parse().ok(),
@@ -144,9 +144,9 @@ fn parse_obszone_line(record: &StringRecord) -> Result<ObservationZone, CupError
                         style = ObsZoneStyle::from_u8(val);
                     }
                 }
-                "R1" => r1 = Some(value.parse().map_err(CupError::Parse)?),
+                "R1" => r1 = Some(value.parse().map_err(CupError::parse)?),
                 "A1" => a1 = value.parse().ok(),
-                "R2" => r2 = Some(value.parse().map_err(CupError::Parse)?),
+                "R2" => r2 = Some(value.parse().map_err(CupError::parse)?),
                 "A2" => a2 = value.parse().ok(),
                 "A12" => a12 = value.parse().ok(),
                 "Line" => line_val = Some(value == "1" || value.eq_ignore_ascii_case("true")),
@@ -155,8 +155,8 @@ fn parse_obszone_line(record: &StringRecord) -> Result<ObservationZone, CupError
         }
     }
 
-    let index = index.ok_or_else(|| CupError::Parse("Missing ObsZone index".to_string()))?;
-    let style = style.ok_or_else(|| CupError::Parse("Missing ObsZone style".to_string()))?;
+    let index = index.ok_or_else(|| CupError::parse("Missing ObsZone index"))?;
+    let style = style.ok_or_else(|| CupError::parse("Missing ObsZone style"))?;
 
     Ok(ObservationZone {
         index,
@@ -198,14 +198,14 @@ fn parse_inline_waypoint_line_with_index(
     let point_idx_str = record[0].trim_start_matches("Point=");
     let point_index = point_idx_str
         .parse::<usize>()
-        .map_err(|_| CupError::Parse(format!("Invalid point index: {}", point_idx_str)))?;
+        .map_err(|_| CupError::parse(format!("Invalid point index: {point_idx_str}")))?;
 
     // Skip the Point=N field and create a proper waypoint record
     let waypoint_record = StringRecord::from(record.iter().skip(1).collect::<Vec<_>>());
 
     // Parse as a normal waypoint using the same headers as the waypoint section
-    let waypoint =
-        waypoint::parse_waypoint(column_map, &waypoint_record).map_err(CupError::Parse)?;
+    let waypoint = waypoint::parse_waypoint(column_map, &waypoint_record)
+        .map_err(|error| CupError::parse2(error, &waypoint_record))?;
 
     Ok((point_index, waypoint))
 }

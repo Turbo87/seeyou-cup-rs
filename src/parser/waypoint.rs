@@ -17,7 +17,9 @@ pub fn parse_waypoints(
             break;
         }
 
-        let waypoint = parse_waypoint(column_map, &record).map_err(CupError::Parse)?;
+        let waypoint = parse_waypoint(column_map, &record)
+            .map_err(|error| CupError::parse2(error, &record))?;
+
         waypoints.push(waypoint);
     }
 

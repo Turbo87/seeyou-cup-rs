@@ -112,7 +112,7 @@ fn test_empty_name_should_error() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Name field cannot be empty");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Name field cannot be empty");
 }
 
 #[test]
@@ -122,7 +122,7 @@ fn test_invalid_latitude_too_short() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid latitude format: 5147.8N (expected 9 characters, got 7)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude format: 5147.8N (expected 9 characters, got 7)");
 }
 
 #[test]
@@ -132,7 +132,7 @@ fn test_invalid_latitude_too_long() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid latitude format: 51247.809N (expected 9 characters, got 10)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude format: 51247.809N (expected 9 characters, got 10)");
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn test_invalid_latitude_hemisphere() {
 "Test",T,XX,5147.809X,00405.003W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid latitude hemisphere: X");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude hemisphere: X");
 }
 
 #[test]
@@ -150,7 +150,7 @@ fn test_latitude_out_of_range_positive() {
 "Test",T,XX,9100.000N,00405.003W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Latitude out of range: 91 (must be between -90 and 90)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Latitude out of range: 91 (must be between -90 and 90)");
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn test_latitude_out_of_range_negative() {
 "Test",T,XX,9100.000S,00405.003W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Latitude out of range: -91 (must be between -90 and 90)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Latitude out of range: -91 (must be between -90 and 90)");
 }
 
 #[test]
@@ -169,7 +169,7 @@ fn test_invalid_longitude_too_short() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid longitude format: 0405.0W (expected 10 characters, got 7)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude format: 0405.0W (expected 10 characters, got 7)");
 }
 
 #[test]
@@ -179,7 +179,7 @@ fn test_invalid_longitude_too_long() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid longitude format: 000405.003W (expected 10 characters, got 11)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude format: 000405.003W (expected 10 characters, got 11)");
 }
 
 #[test]
@@ -188,7 +188,7 @@ fn test_invalid_longitude_hemisphere() {
 "Test",T,XX,5147.809N,00405.003Y,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid longitude hemisphere: Y");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude hemisphere: Y");
 }
 
 #[test]
@@ -197,7 +197,7 @@ fn test_longitude_out_of_range_positive() {
 "Test",T,XX,5147.809N,18100.000E,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Longitude out of range: 181 (must be between -180 and 180)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Longitude out of range: 181 (must be between -180 and 180)");
 }
 
 #[test]
@@ -206,7 +206,7 @@ fn test_longitude_out_of_range_negative() {
 "Test",T,XX,5147.809N,18100.000W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Longitude out of range: -181 (must be between -180 and 180)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Longitude out of range: -181 (must be between -180 and 180)");
 }
 
 #[test]
@@ -295,7 +295,7 @@ fn test_invalid_numeric_elevation() {
 "Test",T,XX,5147.809N,00405.003W,invalid,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid elevation unit: invalid");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid elevation unit: invalid");
 }
 
 #[test]
@@ -304,7 +304,7 @@ fn test_invalid_elevation_unit() {
 "Test",T,XX,5147.809N,00405.003W,500km,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid elevation: 500km");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid elevation: 500km");
 }
 
 #[test]
@@ -394,7 +394,7 @@ fn test_invalid_numeric_runway_direction() {
 "Test",T,XX,5147.809N,00405.003W,500m,5,abc
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid runway direction: abc");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid runway direction: abc");
 }
 
 #[test]
@@ -442,7 +442,7 @@ fn test_invalid_numeric_runway_length() {
 "Test",T,XX,5147.809N,00405.003W,500m,5,144,invalid
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid runway dimension unit: invalid");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid runway dimension unit: invalid");
 }
 
 #[test]
@@ -451,7 +451,7 @@ fn test_invalid_runway_dimension_unit() {
 "Test",T,XX,5147.809N,00405.003W,500m,5,144,1130km
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error: Invalid runway dimension: 1130km");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid runway dimension: 1130km");
 }
 
 #[test]
