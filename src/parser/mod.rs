@@ -1,10 +1,10 @@
 mod column_map;
 
-use crate::CupEncoding;
 use crate::CupFile;
 use crate::error::CupError;
 use crate::parser::column_map::ColumnMap;
-use crate::types::*;
+use crate::types::{Task, Waypoint};
+use crate::{CupEncoding, ObsZoneStyle, ObservationZone, TaskOptions, WaypointStyle};
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::borrow::Cow;
