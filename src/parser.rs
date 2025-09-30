@@ -317,6 +317,12 @@ fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypo
 }
 
 fn parse_latitude(s: &str) -> Result<f64, String> {
+    if !s.is_ascii() {
+        return Err(format!(
+            "Invalid latitude format: {s} (contains non-ASCII characters)"
+        ));
+    }
+
     if s.len() != 9 {
         return Err(format!(
             "Invalid latitude format: {s} (expected 9 characters, got {})",
@@ -325,7 +331,7 @@ fn parse_latitude(s: &str) -> Result<f64, String> {
     }
 
     let hemisphere = s.chars().last().unwrap();
-    let coords = &s[..s.len() - 1];
+    let coords = &s[..8];
 
     // Validate hemisphere
     if hemisphere != 'N' && hemisphere != 'S' {
@@ -358,6 +364,12 @@ fn parse_latitude(s: &str) -> Result<f64, String> {
 }
 
 fn parse_longitude(s: &str) -> Result<f64, String> {
+    if !s.is_ascii() {
+        return Err(format!(
+            "Invalid longitude format: {s} (contains non-ASCII characters)"
+        ));
+    }
+
     if s.len() != 10 {
         return Err(format!(
             "Invalid longitude format: {s} (expected 10 characters, got {})",
@@ -366,7 +378,7 @@ fn parse_longitude(s: &str) -> Result<f64, String> {
     }
 
     let hemisphere = s.chars().last().unwrap();
-    let coords = &s[..s.len() - 1];
+    let coords = &s[..9];
 
     // Validate hemisphere
     if hemisphere != 'E' && hemisphere != 'W' {
