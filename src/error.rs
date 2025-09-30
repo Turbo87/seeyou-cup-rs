@@ -11,6 +11,9 @@ pub enum CupError {
     #[error("Encoding error: {0}")]
     Encoding(String),
 
+    #[error(transparent)]
+    Csv(#[from] csv::Error),
+
     #[error("Validation error: {0}")]
     Validation(String),
 }

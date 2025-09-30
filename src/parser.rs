@@ -2,6 +2,7 @@ use crate::error::CupError;
 use crate::types::*;
 use crate::CupEncoding;
 use crate::CupFile;
+use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
 use std::collections::HashMap;
 use std::io::Read;
@@ -27,20 +28,13 @@ pub fn parse<R: Read>(mut reader: R, encoding: CupEncoding) -> Result<CupFile, C
 }
 
 fn parse_content(content: &str) -> Result<CupFile, CupError> {
-    let mut lines = content.lines();
-
-    let header_line = lines
-        .next()
-        .ok_or_else(|| CupError::Parse("Empty file".to_string()))?;
-
-    let headers = parse_csv_line(header_line);
-    let column_map = build_column_map(&headers)?;
-
     let mut waypoints = Vec::new();
     let mut tasks = Vec::new();
     let mut in_tasks_section = false;
 
-    for line in lines {
+    let mut lines = content.lines().peekable();
+
+    while let Some(line) = lines.next() {
         let trimmed = line.trim();
 
         if trimmed.is_empty() {
@@ -53,13 +47,46 @@ fn parse_content(content: &str) -> Result<CupFile, CupError> {
         }
 
         if !in_tasks_section {
-            let waypoint = parse_waypoint(line, &column_map)?;
-            waypoints.push(waypoint);
-        } else {
-            if trimmed.starts_with("Options") || trimmed.starts_with("ObsZone=") || trimmed.starts_with("STARTS=") {
+            break;
+        }
+    }
+
+    let waypoint_section: Vec<&str> = content
+        .lines()
+        .take_while(|line| {
+            let trimmed = line.trim();
+            !trimmed.is_empty() && trimmed != "-----Related Tasks-----"
+        })
+        .collect();
+
+    let waypoint_content = waypoint_section.join("\n");
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(waypoint_content.as_bytes());
+
+    let headers = csv_reader.headers()?.clone();
+    let column_map = build_column_map(&headers)?;
+
+    for result in csv_reader.records() {
+        let record = result?;
+        let waypoint = parse_waypoint(&record, &column_map)?;
+        waypoints.push(waypoint);
+    }
+
+    let task_section_start = content.find("-----Related Tasks-----");
+    if let Some(start_pos) = task_section_start {
+        let task_content = &content[start_pos..];
+        for line in task_content.lines().skip(1) {
+            let trimmed = line.trim();
+            if trimmed.is_empty()
+                || trimmed.starts_with("Options")
+                || trimmed.starts_with("ObsZone=")
+                || trimmed.starts_with("STARTS=")
+            {
                 continue;
             }
-            let task = parse_task(line)?;
+
+            let task = parse_task_line(line)?;
             tasks.push(task);
         }
     }
@@ -67,40 +94,7 @@ fn parse_content(content: &str) -> Result<CupFile, CupError> {
     Ok(CupFile { waypoints, tasks })
 }
 
-fn parse_csv_line(line: &str) -> Vec<String> {
-    let mut fields = Vec::new();
-    let mut current = String::new();
-    let mut in_quotes = false;
-    let mut chars = line.chars().peekable();
-
-    while let Some(c) = chars.next() {
-        match c {
-            '"' if !in_quotes => {
-                in_quotes = true;
-            }
-            '"' if in_quotes => {
-                if chars.peek() == Some(&'"') {
-                    current.push('"');
-                    chars.next();
-                } else {
-                    in_quotes = false;
-                }
-            }
-            ',' if !in_quotes => {
-                fields.push(current.trim().to_string());
-                current.clear();
-            }
-            _ => {
-                current.push(c);
-            }
-        }
-    }
-
-    fields.push(current.trim().to_string());
-    fields
-}
-
-fn build_column_map(headers: &[String]) -> Result<HashMap<String, usize>, CupError> {
+fn build_column_map(headers: &StringRecord) -> Result<HashMap<String, usize>, CupError> {
     let mut map = HashMap::new();
     for (idx, header) in headers.iter().enumerate() {
         map.insert(header.to_lowercase(), idx);
@@ -108,13 +102,14 @@ fn build_column_map(headers: &[String]) -> Result<HashMap<String, usize>, CupErr
     Ok(map)
 }
 
-fn parse_waypoint(line: &str, column_map: &HashMap<String, usize>) -> Result<Waypoint, CupError> {
-    let fields = parse_csv_line(line);
-
+fn parse_waypoint(
+    record: &StringRecord,
+    column_map: &HashMap<String, usize>,
+) -> Result<Waypoint, CupError> {
     let get_field = |key: &str| -> Option<String> {
         column_map
             .get(key)
-            .and_then(|&idx| fields.get(idx))
+            .and_then(|&idx| record.get(idx))
             .map(|s| s.to_string())
     };
 
@@ -300,23 +295,32 @@ fn parse_waypoint_style(s: &str) -> Result<WaypointStyle, CupError> {
     Ok(WaypointStyle::from_u8(value))
 }
 
-fn parse_task(line: &str) -> Result<Task, CupError> {
-    let fields = parse_csv_line(line);
+fn parse_task_line(line: &str) -> Result<Task, CupError> {
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .has_headers(false)
+        .flexible(true)
+        .from_reader(line.as_bytes());
+    let mut records = csv_reader.records();
 
-    if fields.is_empty() {
+    let record = records
+        .next()
+        .ok_or_else(|| CupError::Parse("Empty task line".to_string()))??;
+
+    if record.is_empty() {
         return Err(CupError::Parse("Empty task line".to_string()));
     }
 
-    let description = if fields[0].is_empty() {
+    let description = if record.get(0).map(|s| s.is_empty()).unwrap_or(true) {
         None
     } else {
-        Some(fields[0].clone())
+        Some(record.get(0).unwrap().to_string())
     };
 
-    let waypoints = fields[1..]
+    let waypoints = record
         .iter()
+        .skip(1)
         .filter(|s| !s.is_empty())
-        .map(|s| TaskPoint::Reference(s.clone()))
+        .map(|s| TaskPoint::Reference(s.to_string()))
         .collect();
 
     Ok(Task {
