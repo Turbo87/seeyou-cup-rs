@@ -1,5 +1,5 @@
 use claims::{assert_ok, assert_some_eq};
-use seeyou::{CupEncoding, CupFile};
+use seeyou_cup::{CupEncoding, CupFile};
 use std::path::Path;
 
 #[test]

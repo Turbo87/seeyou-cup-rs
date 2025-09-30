@@ -1,5 +1,5 @@
 use claims::{assert_matches, assert_ok, assert_some, assert_some_eq};
-use seeyou::{CupFile, Distance, Elevation, ObsZoneStyle, RunwayDimension, WaypointStyle};
+use seeyou_cup::{CupFile, Distance, Elevation, ObsZoneStyle, RunwayDimension, WaypointStyle};
 
 #[test]
 fn test_parse_options_line() {

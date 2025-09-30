@@ -1,5 +1,5 @@
 use claims::{assert_err, assert_ok, assert_some, assert_some_eq};
-use seeyou::CupFile;
+use seeyou_cup::CupFile;
 
 #[test]
 fn test_empty_file() {

@@ -1,5 +1,5 @@
 use claims::{assert_err, assert_matches, assert_ok, assert_some, assert_some_eq};
-use seeyou::{CupFile, Elevation, RunwayDimension, WaypointStyle};
+use seeyou_cup::{CupFile, Elevation, RunwayDimension, WaypointStyle};
 
 #[test]
 fn test_parse_basic_waypoint() {

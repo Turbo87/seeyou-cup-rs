@@ -1,5 +1,5 @@
 use claims::{assert_none, assert_ok, assert_some_eq};
-use seeyou::{CupFile, WaypointStyle};
+use seeyou_cup::{CupFile, WaypointStyle};
 
 #[test]
 fn test_arbitrary_column_order() {
