@@ -4,7 +4,6 @@ use crate::CupEncoding;
 use crate::CupFile;
 use csv::StringRecord;
 use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
-use std::collections::HashMap;
 use std::io::Read;
 
 pub fn parse<R: Read>(mut reader: R, encoding: CupEncoding) -> Result<CupFile, CupError> {
@@ -28,115 +27,98 @@ pub fn parse<R: Read>(mut reader: R, encoding: CupEncoding) -> Result<CupFile, C
 }
 
 fn parse_content(content: &str) -> Result<CupFile, CupError> {
-    let mut waypoints = Vec::new();
-    let mut tasks = Vec::new();
-    let mut in_tasks_section = false;
+    let (waypoint_section, task_section) = split_sections(content);
 
-    let mut lines = content.lines().peekable();
-
-    while let Some(line) = lines.next() {
-        let trimmed = line.trim();
-
-        if trimmed.is_empty() {
-            continue;
-        }
-
-        if trimmed == "-----Related Tasks-----" {
-            in_tasks_section = true;
-            continue;
-        }
-
-        if !in_tasks_section {
-            break;
-        }
-    }
-
-    let waypoint_section: Vec<&str> = content
-        .lines()
-        .take_while(|line| {
-            let trimmed = line.trim();
-            !trimmed.is_empty() && trimmed != "-----Related Tasks-----"
-        })
-        .collect();
-
-    let waypoint_content = waypoint_section.join("\n");
-    let mut csv_reader = csv::ReaderBuilder::new()
-        .flexible(true)
-        .from_reader(waypoint_content.as_bytes());
-
-    let headers = csv_reader.headers()?.clone();
-    let column_map = build_column_map(&headers)?;
-
-    for result in csv_reader.records() {
-        let record = result?;
-        let waypoint = parse_waypoint(&record, &column_map)?;
-        waypoints.push(waypoint);
-    }
-
-    let task_section_start = content.find("-----Related Tasks-----");
-    if let Some(start_pos) = task_section_start {
-        let task_content = &content[start_pos..];
-        for line in task_content.lines().skip(1) {
-            let trimmed = line.trim();
-            if trimmed.is_empty()
-                || trimmed.starts_with("Options")
-                || trimmed.starts_with("ObsZone=")
-                || trimmed.starts_with("STARTS=")
-            {
-                continue;
-            }
-
-            let task = parse_task_line(line)?;
-            tasks.push(task);
-        }
-    }
+    let waypoints = parse_waypoints(waypoint_section)?;
+    let tasks = parse_tasks(task_section)?;
 
     Ok(CupFile { waypoints, tasks })
 }
 
-fn build_column_map(headers: &StringRecord) -> Result<HashMap<String, usize>, CupError> {
-    let mut map = HashMap::new();
-    for (idx, header) in headers.iter().enumerate() {
-        map.insert(header.to_lowercase(), idx);
+fn split_sections(content: &str) -> (&str, Option<&str>) {
+    if let Some(pos) = content.find("-----Related Tasks-----") {
+        (&content[..pos], Some(&content[pos..]))
+    } else {
+        (content, None)
     }
-    Ok(map)
+}
+
+fn parse_waypoints(section: &str) -> Result<Vec<Waypoint>, CupError> {
+    let mut csv_reader = csv::ReaderBuilder::new()
+        .flexible(true)
+        .from_reader(section.as_bytes());
+
+    let headers = csv_reader.headers()?.clone();
+
+    let mut waypoints = Vec::new();
+    for result in csv_reader.records() {
+        let record = result?;
+        let waypoint = parse_waypoint(&headers, &record)?;
+        waypoints.push(waypoint);
+    }
+
+    Ok(waypoints)
+}
+
+fn parse_tasks(section: Option<&str>) -> Result<Vec<Task>, CupError> {
+    let Some(section) = section else {
+        return Ok(Vec::new());
+    };
+
+    let mut tasks = Vec::new();
+    for line in section.lines().skip(1) {
+        let trimmed = line.trim();
+        if trimmed.is_empty()
+            || trimmed.starts_with("Options")
+            || trimmed.starts_with("ObsZone=")
+            || trimmed.starts_with("STARTS=")
+        {
+            continue;
+        }
+
+        let task = parse_task_line(line)?;
+        tasks.push(task);
+    }
+
+    Ok(tasks)
 }
 
 fn parse_waypoint(
+    headers: &StringRecord,
     record: &StringRecord,
-    column_map: &HashMap<String, usize>,
 ) -> Result<Waypoint, CupError> {
-    let get_field = |key: &str| -> Option<String> {
-        column_map
-            .get(key)
-            .and_then(|&idx| record.get(idx))
-            .map(|s| s.to_string())
+    let get_field = |key: &str| -> Option<&str> {
+        headers
+            .iter()
+            .position(|h| h.eq_ignore_ascii_case(key))
+            .and_then(|idx| record.get(idx))
     };
 
     let name = get_field("name")
-        .ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?;
+        .ok_or_else(|| CupError::Parse("Missing 'name' field".to_string()))?
+        .to_string();
 
-    let code = get_field("code").unwrap_or_default();
-    let country = get_field("country").unwrap_or_default();
+    let code = get_field("code").unwrap_or_default().to_string();
+    let country = get_field("country").unwrap_or_default().to_string();
 
     let lat_str = get_field("lat")
         .ok_or_else(|| CupError::Parse("Missing 'lat' field".to_string()))?;
-    let lat = parse_latitude(&lat_str)?;
+    let lat = parse_latitude(lat_str)?;
 
     let lon_str = get_field("lon")
         .ok_or_else(|| CupError::Parse("Missing 'lon' field".to_string()))?;
-    let lon = parse_longitude(&lon_str)?;
+    let lon = parse_longitude(lon_str)?;
 
     let elev_str = get_field("elev")
         .ok_or_else(|| CupError::Parse("Missing 'elev' field".to_string()))?;
-    let elev = parse_elevation(&elev_str)?;
+    let elev = parse_elevation(elev_str)?;
 
     let style_str = get_field("style")
         .ok_or_else(|| CupError::Parse("Missing 'style' field".to_string()))?;
-    let style = parse_waypoint_style(&style_str)?;
+    let style = parse_waypoint_style(style_str)?;
 
     let runway_dir = get_field("rwdir")
-        .and_then(|s| if s.is_empty() { None } else { Some(s) })
+        .filter(|s| !s.is_empty())
         .map(|s| {
             s.parse::<u16>()
                 .map_err(|_| CupError::Parse(format!("Invalid runway direction: {}", s)))
@@ -144,20 +126,26 @@ fn parse_waypoint(
         .transpose()?;
 
     let runway_len = get_field("rwlen")
-        .and_then(|s| if s.is_empty() { None } else { Some(s) })
-        .map(|s| parse_runway_dimension(&s))
+        .filter(|s| !s.is_empty())
+        .map(parse_runway_dimension)
         .transpose()?;
 
     let runway_width = get_field("rwwidth")
-        .and_then(|s| if s.is_empty() { None } else { Some(s) })
-        .map(|s| parse_runway_dimension(&s))
+        .filter(|s| !s.is_empty())
+        .map(parse_runway_dimension)
         .transpose()?;
 
-    let freq = get_field("freq").and_then(|s| if s.is_empty() { None } else { Some(s) });
+    let freq = get_field("freq")
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
 
-    let desc = get_field("desc").and_then(|s| if s.is_empty() { None } else { Some(s) });
+    let desc = get_field("desc")
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
 
-    let userdata = get_field("userdata").and_then(|s| if s.is_empty() { None } else { Some(s) });
+    let userdata = get_field("userdata")
+        .filter(|s| !s.is_empty())
+        .map(str::to_string);
 
     let pics = get_field("pics")
         .map(|s| {
