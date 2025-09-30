@@ -102,7 +102,6 @@ pub enum WaypointStyle {
 impl WaypointStyle {
     pub fn from_u8(value: u8) -> Self {
         match value {
-            0 => WaypointStyle::Unknown,
             1 => WaypointStyle::Waypoint,
             2 => WaypointStyle::GrassAirfield,
             3 => WaypointStyle::Outlanding,
