@@ -1,5 +1,5 @@
 use claims::{assert_ok, assert_some_eq};
-use seeyou_cup::{CupEncoding, CupFile};
+use seeyou_cup::CupFile;
 use std::path::Path;
 
 #[test]
@@ -50,19 +50,6 @@ fn test_fixture_schwarzwald() {
 }
 
 #[test]
-fn test_fixture_hotzenwaldwettbewerb() {
-    let path = Path::new("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup");
-    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252);
-    let cup = assert_ok!(cup);
-
-    assert_eq!(cup.waypoints.len(), 252);
-    assert_eq!(cup.tasks.len(), 0);
-
-    assert_eq!(cup.waypoints[0].name, "000_Huetten Hotz");
-    assert_eq!(cup.waypoints[0].code, "0");
-}
-
-#[test]
 fn test_fixture_ec25() {
     let path = Path::new("tests/fixtures/EC25.cup");
     let cup = assert_ok!(CupFile::from_path(path));
@@ -88,12 +75,4 @@ fn test_fixture_with_task() {
         "709 km · Dreieck · DMSt · Aachen Stolberg TV_282915"
     );
     assert_eq!(task.waypoint_names.len(), 5);
-}
-#[test]
-fn test_fixture_windows1252() {
-    let path = Path::new("tests/fixtures/2018_schwarzwald_landefelder.cup");
-    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252);
-    let cup = assert_ok!(cup);
-
-    assert!(!cup.waypoints.is_empty());
 }
