@@ -1,5 +1,6 @@
 mod error;
 mod parser;
+pub mod spec;
 mod types;
 mod writer;
 
