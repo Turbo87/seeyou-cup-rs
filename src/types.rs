@@ -95,6 +95,17 @@ impl Distance {
     }
 }
 
+impl Display for Distance {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Distance::Meters(m) => write!(f, "{}m", m),
+            Distance::Kilometers(km) => write!(f, "{}km", km),
+            Distance::NauticalMiles(nm) => write!(f, "{}nm", nm),
+            Distance::StatuteMiles(mi) => write!(f, "{}ml", mi),
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WaypointStyle {
     Unknown = 0,

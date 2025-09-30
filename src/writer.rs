@@ -177,7 +177,7 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
         parts.push(format!("WpDis={}", if wp_dis { "True" } else { "False" }));
     }
     if let Some(near_dis) = &options.near_dis {
-        parts.push(format!("NearDis={}", format_distance(near_dis)));
+        parts.push(format!("NearDis={near_dis}"));
     }
     if let Some(near_alt) = &options.near_alt {
         parts.push(format!("NearAlt={near_alt}"));
@@ -205,15 +205,6 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
     }
 
     Ok(parts.join(","))
-}
-
-fn format_distance(dist: &Distance) -> String {
-    match dist {
-        Distance::Meters(m) => format!("{}m", m),
-        Distance::Kilometers(km) => format!("{}km", km),
-        Distance::NauticalMiles(nm) => format!("{}nm", nm),
-        Distance::StatuteMiles(mi) => format!("{}ml", mi),
-    }
 }
 
 fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupError> {
