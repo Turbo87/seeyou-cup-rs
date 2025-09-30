@@ -1,6 +1,7 @@
 use claims::{assert_ok, assert_some_eq};
 use seeyou_cup::CupFile;
 use std::path::Path;
+use std::str::FromStr;
 
 #[test]
 fn test_parse_task() {
@@ -11,7 +12,7 @@ fn test_parse_task() {
 "Test Task","LJBL","WP1","LJBL"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(&input));
+    let cup = assert_ok!(CupFile::from_str(input));
 
     assert_eq!(cup.waypoints.len(), 2);
     assert_eq!(cup.tasks.len(), 1);
@@ -27,7 +28,7 @@ fn test_roundtrip() {
 "Lesce","LJBL",SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,,123.500,"Home Airfield"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(&input));
+    let cup = assert_ok!(CupFile::from_str(input));
     let output = assert_ok!(cup.to_string());
     let cup2 = assert_ok!(CupFile::from_str(&output));
 

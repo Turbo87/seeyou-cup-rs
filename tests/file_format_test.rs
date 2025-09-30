@@ -1,5 +1,6 @@
 use claims::{assert_none, assert_ok, assert_some_eq};
 use seeyou_cup::{CupFile, WaypointStyle};
+use std::str::FromStr;
 
 #[test]
 fn test_arbitrary_column_order() {

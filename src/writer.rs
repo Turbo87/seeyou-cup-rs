@@ -34,7 +34,7 @@ fn format_cup_file(cup_file: &CupFile) -> Result<String, CupError> {
     let mut output = Vec::new();
     let mut csv_writer = Writer::from_writer(&mut output);
 
-    csv_writer.write_record(&[
+    csv_writer.write_record([
         "name", "code", "country", "lat", "lon", "elev", "style", "rwdir", "rwlen", "rwwidth",
         "freq", "desc", "userdata", "pics",
     ])?;
@@ -70,7 +70,7 @@ fn write_waypoint<W: std::io::Write>(
         waypoint.pics.join(";")
     };
 
-    writer.write_record(&[
+    writer.write_record([
         &waypoint.name,
         &waypoint.code,
         &waypoint.country,
@@ -144,7 +144,7 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
     let mut output = Vec::new();
     {
         let mut csv_writer = Writer::from_writer(&mut output);
-        csv_writer.write_record(&[
+        csv_writer.write_record([
             &format!("Point={}", index),
             &waypoint.name,
             &waypoint.code,

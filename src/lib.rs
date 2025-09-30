@@ -9,6 +9,7 @@ pub use types::*;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
+use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy)]
 pub enum CupEncoding {
@@ -47,10 +48,6 @@ impl CupFile {
         Self::from_reader_with_encoding(file, encoding)
     }
 
-    pub fn from_str(s: &str) -> Result<Self, CupError> {
-        Self::from_reader(s.as_bytes())
-    }
-
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), CupError> {
         self.to_writer_with_encoding(writer, CupEncoding::Utf8)
     }
@@ -79,6 +76,14 @@ impl CupFile {
     pub fn to_string(&self) -> Result<String, CupError> {
         let mut buf = Vec::new();
         self.to_writer(&mut buf)?;
-        Ok(String::from_utf8(buf).map_err(|e| CupError::Encoding(e.to_string()))?)
+        String::from_utf8(buf).map_err(|e| CupError::Encoding(e.to_string()))
+    }
+}
+
+impl FromStr for CupFile {
+    type Err = CupError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Self::from_reader(s.as_bytes())
     }
 }

@@ -254,7 +254,10 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
 
     // Validate hemisphere
     if hemisphere != 'N' && hemisphere != 'S' {
-        return Err(CupError::Parse(format!("Invalid latitude hemisphere: {}", hemisphere)));
+        return Err(CupError::Parse(format!(
+            "Invalid latitude hemisphere: {}",
+            hemisphere
+        )));
     }
 
     let degrees: f64 = coords[0..2]
@@ -272,7 +275,7 @@ fn parse_latitude(s: &str) -> Result<f64, CupError> {
     }
 
     // Validate range
-    if decimal_degrees < -90.0 || decimal_degrees > 90.0 {
+    if !(-90.0..=90.0).contains(&decimal_degrees) {
         return Err(CupError::Parse(format!(
             "Latitude out of range: {} (must be between -90 and 90)",
             decimal_degrees
@@ -296,7 +299,10 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
 
     // Validate hemisphere
     if hemisphere != 'E' && hemisphere != 'W' {
-        return Err(CupError::Parse(format!("Invalid longitude hemisphere: {}", hemisphere)));
+        return Err(CupError::Parse(format!(
+            "Invalid longitude hemisphere: {}",
+            hemisphere
+        )));
     }
 
     let degrees: f64 = coords[0..3]
@@ -314,7 +320,7 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
     }
 
     // Validate range
-    if decimal_degrees < -180.0 || decimal_degrees > 180.0 {
+    if !(-180.0..=180.0).contains(&decimal_degrees) {
         return Err(CupError::Parse(format!(
             "Longitude out of range: {} (must be between -180 and 180)",
             decimal_degrees
@@ -327,14 +333,12 @@ fn parse_longitude(s: &str) -> Result<f64, CupError> {
 fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
     let s = s.trim();
 
-    if s.ends_with("ft") {
-        let value_str = &s[..s.len() - 2];
+    if let Some(value_str) = s.strip_suffix("ft") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
         Ok(Elevation::Feet(value))
-    } else if s.ends_with('m') {
-        let value_str = &s[..s.len() - 1];
+    } else if let Some(value_str) = s.strip_suffix('m') {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
@@ -347,7 +351,7 @@ fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
             let unit = &s[unit_start..];
             return Err(CupError::Parse(format!("Invalid elevation unit: {}", unit)));
         }
-        
+
         let value: f64 = s
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid elevation value: {}", s)))?;
@@ -358,20 +362,17 @@ fn parse_elevation(s: &str) -> Result<Elevation, CupError> {
 fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, CupError> {
     let s = s.trim();
 
-    if s.ends_with("nm") {
-        let value_str = &s[..s.len() - 2];
+    if let Some(value_str) = s.strip_suffix("nm") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
         Ok(RunwayDimension::NauticalMiles(value))
-    } else if s.ends_with("ml") {
-        let value_str = &s[..s.len() - 2];
+    } else if let Some(value_str) = s.strip_suffix("ml") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
         Ok(RunwayDimension::StatuteMiles(value))
-    } else if s.ends_with('m') {
-        let value_str = &s[..s.len() - 1];
+    } else if let Some(value_str) = s.strip_suffix('m') {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
@@ -382,9 +383,12 @@ fn parse_runway_dimension(s: &str) -> Result<RunwayDimension, CupError> {
             // Extract the unit suffix
             let unit_start = s.chars().position(|c| c.is_alphabetic()).unwrap();
             let unit = &s[unit_start..];
-            return Err(CupError::Parse(format!("Invalid runway dimension unit: {}", unit)));
+            return Err(CupError::Parse(format!(
+                "Invalid runway dimension unit: {}",
+                unit
+            )));
         }
-        
+
         let value: f64 = s
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid runway dimension: {}", s)))?;
@@ -480,26 +484,22 @@ fn parse_options_line(line: &str) -> Result<TaskOptions, CupError> {
 fn parse_distance(s: &str) -> Result<Distance, CupError> {
     let s = s.trim();
 
-    if s.ends_with("km") {
-        let value_str = &s[..s.len() - 2];
+    if let Some(value_str) = s.strip_suffix("km") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
         Ok(Distance::Kilometers(value))
-    } else if s.ends_with("nm") {
-        let value_str = &s[..s.len() - 2];
+    } else if let Some(value_str) = s.strip_suffix("nm") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
         Ok(Distance::NauticalMiles(value))
-    } else if s.ends_with("ml") {
-        let value_str = &s[..s.len() - 2];
+    } else if let Some(value_str) = s.strip_suffix("ml") {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
         Ok(Distance::StatuteMiles(value))
-    } else if s.ends_with('m') {
-        let value_str = &s[..s.len() - 1];
+    } else if let Some(value_str) = s.strip_suffix('m') {
         let value: f64 = value_str
             .parse()
             .map_err(|_| CupError::Parse(format!("Invalid distance value: {}", s)))?;
@@ -597,7 +597,7 @@ fn parse_inline_waypoint_line_with_index(
     };
 
     // Check that it starts with Point=N
-    if record.len() < 1 || !record[0].starts_with("Point=") {
+    if record.is_empty() || !record[0].starts_with("Point=") {
         return Err(CupError::Parse(format!(
             "Invalid inline waypoint format: {}",
             line

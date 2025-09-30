@@ -1,5 +1,6 @@
 use claims::{assert_err, assert_matches, assert_ok, assert_some, assert_some_eq};
 use seeyou_cup::{CupFile, Elevation, RunwayDimension, WaypointStyle};
+use std::str::FromStr;
 
 #[test]
 fn test_parse_basic_waypoint() {

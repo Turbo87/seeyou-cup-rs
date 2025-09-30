@@ -1,5 +1,6 @@
 use claims::{assert_err, assert_ok, assert_some, assert_some_eq};
 use seeyou_cup::CupFile;
+use std::str::FromStr;
 
 #[test]
 fn test_empty_file() {
