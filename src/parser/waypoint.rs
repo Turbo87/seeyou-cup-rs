@@ -72,14 +72,7 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
     let userdata = userdata.unwrap_or_default().to_string();
 
     let pictures = column_map.pics.and_then(|idx| record.get(idx));
-    let pictures = pictures
-        .map(|s| {
-            s.split(';')
-                .map(|p| p.trim().to_string())
-                .filter(|p| !p.is_empty())
-                .collect()
-        })
-        .unwrap_or_default();
+    let pictures = pictures.map(parse_pictures).unwrap_or_default();
 
     Ok(Waypoint {
         name,
@@ -129,4 +122,11 @@ fn parse_waypoint_style(s: &str) -> WaypointStyle {
 fn parse_runway_direction(s: &str) -> Result<u16, String> {
     s.parse()
         .map_err(|_| format!("Invalid runway direction: {s}"))
+}
+
+fn parse_pictures(s: &str) -> Vec<String> {
+    s.split(';')
+        .map(|p| p.trim().to_string())
+        .filter(|p| !p.is_empty())
+        .collect()
 }
