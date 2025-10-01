@@ -1,7 +1,3 @@
-fn is_numeric(byte: &u8) -> bool {
-    (b'0'..=b'9').contains(byte)
-}
-
 pub fn parse_latitude(s: &str) -> Result<f64, String> {
     let bytes = s.as_bytes();
     let bytes_len = bytes.len();
@@ -14,9 +10,9 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
 
     let hemisphere = bytes[bytes_len - 1];
 
-    if !bytes[0..4].iter().all(is_numeric)
+    if !bytes[0..4].iter().all(u8::is_ascii_digit)
         || bytes[4] != b'.'
-        || !bytes[5..bytes_len - 1].iter().all(is_numeric)
+        || !bytes[5..bytes_len - 1].iter().all(u8::is_ascii_digit)
         || (hemisphere != b'N' && hemisphere != b'S')
     {
         return Err(format!(
@@ -61,9 +57,9 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
 
     let hemisphere = bytes[bytes_len - 1];
 
-    if !bytes[0..5].iter().all(is_numeric)
+    if !bytes[0..5].iter().all(u8::is_ascii_digit)
         || bytes[5] != b'.'
-        || !bytes[6..bytes_len - 1].iter().all(is_numeric)
+        || !bytes[6..bytes_len - 1].iter().all(u8::is_ascii_digit)
         || (hemisphere != b'E' && hemisphere != b'W')
     {
         return Err(format!(
