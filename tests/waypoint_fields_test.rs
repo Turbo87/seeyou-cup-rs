@@ -132,7 +132,7 @@ fn test_invalid_latitude_too_long() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude format: 51247.809N (expected 9 characters, got 10)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude format: 51247.809N (unexpected character)");
 }
 
 #[test]
@@ -141,7 +141,7 @@ fn test_invalid_latitude_hemisphere() {
 "Test",T,XX,5147.809X,00405.003W,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude hemisphere: X");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid latitude format: 5147.809X (unexpected character)");
 }
 
 #[test]
@@ -179,7 +179,7 @@ fn test_invalid_longitude_too_long() {
 "#;
 
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude format: 000405.003W (expected 10 characters, got 11)");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude format: 000405.003W (unexpected character)");
 }
 
 #[test]
@@ -188,7 +188,7 @@ fn test_invalid_longitude_hemisphere() {
 "Test",T,XX,5147.809N,00405.003Y,500m,1
 "#;
     let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude hemisphere: Y");
+    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid longitude format: 00405.003Y (unexpected character)");
 }
 
 #[test]
