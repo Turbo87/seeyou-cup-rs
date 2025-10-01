@@ -28,6 +28,12 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
         .parse()
         .map_err(|_| format!("Invalid latitude minutes: {s}"))?;
 
+    if !(0.0..60.0).contains(&minutes) {
+        return Err(format!(
+            "Latitude minutes out of range: {minutes} (must be between 0 and 60)",
+        ));
+    }
+
     let mut decimal_degrees = degrees + minutes / 60.0;
 
     if hemisphere == 'S' {
@@ -74,6 +80,12 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
     let minutes: f64 = coords[3..]
         .parse()
         .map_err(|_| format!("Invalid longitude minutes: {}", s))?;
+
+    if !(0.0..60.0).contains(&minutes) {
+        return Err(format!(
+            "Longitude minutes out of range: {minutes} (must be between 0 and 60)",
+        ));
+    }
 
     let mut decimal_degrees = degrees + minutes / 60.0;
 
