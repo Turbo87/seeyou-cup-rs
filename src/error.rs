@@ -6,8 +6,8 @@ pub enum CupError {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
-    #[error("Parse error{}: {error}", line.map(|l| format!(" on line {l}")).unwrap_or_default())]
-    Parse { error: String, line: Option<u64> },
+    #[error("Parse error{}: {}", .0.line.map(|l| format!(" on line {l}")).unwrap_or_default(), .0.message)]
+    Parse(ParseIssue),
 
     #[error("Encoding error: {0}")]
     Encoding(String),
@@ -16,18 +16,28 @@ pub enum CupError {
     Csv(#[from] csv::Error),
 }
 
-impl CupError {
-    pub(crate) fn parse_with_line(error: impl Into<String>, line: Option<u64>) -> Self {
-        let error = error.into();
-        Self::Parse { error, line }
+impl From<ParseIssue> for CupError {
+    fn from(issue: ParseIssue) -> Self {
+        CupError::Parse(issue)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct ParseIssue {
+    message: String,
+    line: Option<u64>,
+}
+
+impl ParseIssue {
+    pub(crate) fn new(message: impl Into<String>) -> Self {
+        let message = message.into();
+        let line = None;
+        Self { message, line }
     }
 
-    pub(crate) fn parse(error: impl Into<String>) -> Self {
-        Self::parse_with_line(error, None)
-    }
-
-    pub(crate) fn parse2(error: impl Into<String>, record: &StringRecord) -> Self {
+    pub(crate) fn with_record(self, record: &StringRecord) -> Self {
+        let message = self.message;
         let line = record.position().map(|p| p.line());
-        Self::parse_with_line(error, line)
+        Self { message, line }
     }
 }

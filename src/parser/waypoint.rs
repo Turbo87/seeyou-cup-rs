@@ -1,3 +1,4 @@
+use crate::error::ParseIssue;
 use crate::parser::TASK_SEPARATOR;
 use crate::parser::basics::{parse_latitude, parse_longitude};
 use crate::parser::column_map::ColumnMap;
@@ -18,7 +19,7 @@ pub fn parse_waypoints(
         }
 
         let waypoint = parse_waypoint(column_map, &record)
-            .map_err(|error| CupError::parse2(error, &record))?;
+            .map_err(|error| ParseIssue::new(error).with_record(&record))?;
 
         waypoints.push(waypoint);
     }

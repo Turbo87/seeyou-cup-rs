@@ -5,7 +5,7 @@ mod waypoint;
 
 use crate::CupEncoding;
 use crate::CupFile;
-use crate::error::CupError;
+use crate::error::{CupError, ParseIssue};
 use crate::parser::column_map::ColumnMap;
 use crate::parser::task::parse_tasks;
 use crate::parser::waypoint::parse_waypoints;
@@ -52,7 +52,7 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
 fn parse_content(content: &str) -> Result<CupFile, CupError> {
     let content = content.trim();
     if content.is_empty() {
-        return Err(CupError::parse("Empty file"));
+        return Err(ParseIssue::new("Empty file").into());
     }
 
     let mut csv_reader = csv::ReaderBuilder::new()
@@ -60,8 +60,8 @@ fn parse_content(content: &str) -> Result<CupFile, CupError> {
         .from_reader(content.as_bytes());
 
     let headers = csv_reader.headers()?;
-    let column_map =
-        ColumnMap::try_from(headers).map_err(|error| CupError::parse2(error, headers))?;
+    let column_map = ColumnMap::try_from(headers)
+        .map_err(|error| ParseIssue::new(error).with_record(headers))?;
 
     let mut csv_iter = csv_reader.records();
     let waypoints = parse_waypoints(&mut csv_iter, &column_map)?;
