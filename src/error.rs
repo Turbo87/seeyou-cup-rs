@@ -14,9 +14,6 @@ pub enum CupError {
 
     #[error(transparent)]
     Csv(#[from] csv::Error),
-
-    #[error("Validation error: {0}")]
-    Validation(String),
 }
 
 impl CupError {
