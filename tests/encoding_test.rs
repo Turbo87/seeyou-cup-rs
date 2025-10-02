@@ -1,58 +1,58 @@
-use claims::{assert_ok, assert_some};
-use seeyou_cup::{CupEncoding, CupFile};
-use std::path::Path;
+use claims::assert_ok;
+use insta::assert_snapshot;
+use seeyou_cup::CupEncoding::{self, Utf8, Windows1252};
+use seeyou_cup::CupFile;
+use std::path::{Path, PathBuf};
 
 const FIXTURES: [(&str, CupEncoding); 4] = [
-    ("2018_schwarzwald_landefelder.cup", CupEncoding::Utf8),
-    ("2018_Hotzenwaldwettbewerb_V3.cup", CupEncoding::Windows1252),
-    (
-        "709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup",
-        CupEncoding::Utf8,
-    ),
-    ("EC25.cup", CupEncoding::Utf8),
+    ("2018_schwarzwald_landefelder.cup", Utf8),
+    ("2018_Hotzenwaldwettbewerb_V3.cup", Windows1252),
+    ("709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup", Utf8),
+    ("EC25.cup", Utf8),
 ];
+
+fn hotzenwald() -> PathBuf {
+    PathBuf::from("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup")
+}
+
+fn schwarzwald() -> PathBuf {
+    PathBuf::from("tests/fixtures/2018_schwarzwald_landefelder.cup")
+}
 
 #[test]
 fn test_encoding_auto_detect_utf8() {
-    let path = Path::new("tests/fixtures/EC25.cup");
-    let cup = assert_ok!(CupFile::from_path(path));
-
-    assert_eq!(cup.waypoints.len(), 221);
-    assert_eq!(cup.waypoints[0].name, "001 Aachen AB Kreuz");
+    let cup = assert_ok!(CupFile::from_path(schwarzwald()));
+    assert_eq!(cup.waypoints.len(), 64);
+    assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen Geländeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 }
 
 #[test]
 fn test_encoding_auto_detect_windows1252() {
-    let path = Path::new("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup");
-    let cup = assert_ok!(CupFile::from_path(path));
-
+    let cup = assert_ok!(CupFile::from_path(hotzenwald()));
     assert_eq!(cup.waypoints.len(), 252);
-    assert_eq!(cup.waypoints[0].name, "000_Huetten Hotz");
-
-    // Find "121_La Tourne" waypoint
-    let la_tourne = assert_some!(cup.waypoints.iter().find(|w| w.name == "121_La Tourne"));
-
-    // The description should contain "Passhöhe" with proper umlaut
-    assert_eq!(&la_tourne.description, "Passhöhe");
+    assert_snapshot!(cup.waypoints[121].description, @"Passhöhe");
 }
 
 #[test]
 fn test_explicit_utf8() {
-    let path = Path::new("tests/fixtures/EC25.cup");
-    let cup = assert_ok!(CupFile::from_path_with_encoding(path, CupEncoding::Utf8));
+    let cup = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Utf8));
+    assert_eq!(cup.waypoints.len(), 64);
+    assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen Geländeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 
-    assert_eq!(cup.waypoints.len(), 221);
-    assert_eq!(cup.waypoints[0].name, "001 Aachen AB Kreuz");
+    let cup = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Utf8));
+    assert_eq!(cup.waypoints.len(), 252);
+    assert_snapshot!(cup.waypoints[121].description, @"Passh�he");
 }
 
 #[test]
 fn test_explicit_windows1252() {
-    let path = Path::new("tests/fixtures/2018_Hotzenwaldwettbewerb_V3.cup");
-    let cup = CupFile::from_path_with_encoding(path, CupEncoding::Windows1252);
-    let cup = assert_ok!(cup);
+    let cup = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Windows1252));
+    assert_eq!(cup.waypoints.len(), 64);
+    assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen GelÃ¤ndeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 
+    let cup = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Windows1252));
     assert_eq!(cup.waypoints.len(), 252);
-    assert_eq!(cup.waypoints[0].name, "000_Huetten Hotz");
+    assert_snapshot!(cup.waypoints[121].description, @"Passhöhe");
 }
 
 #[test]

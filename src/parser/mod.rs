@@ -33,14 +33,7 @@ fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, s
         CupEncoding::Windows1252 => WINDOWS_1252,
     };
 
-    let (content, _, had_errors) = encoding_impl.decode(bytes);
-    if had_errors {
-        return Err(CupError::Encoding(format!(
-            "Failed to decode with {:?}",
-            encoding
-        )));
-    }
-
+    let (content, _, _had_errors) = encoding_impl.decode(bytes);
     Ok(content)
 }
 
