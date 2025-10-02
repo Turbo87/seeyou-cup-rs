@@ -8,6 +8,7 @@ use csv::StringRecord;
 pub fn parse_waypoints(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
+    warnings: &mut Vec<ParseIssue>,
 ) -> Result<Vec<Waypoint>, Error> {
     let mut waypoints = Vec::new();
     for result in csv_iter {
@@ -18,16 +19,23 @@ pub fn parse_waypoints(
             break;
         }
 
-        let waypoint = parse_waypoint(column_map, &record)
-            .map_err(|error| ParseIssue::new(error).with_record(&record))?;
-
-        waypoints.push(waypoint);
+        match parse_waypoint(column_map, &record, warnings) {
+            Ok(waypoint) => waypoints.push(waypoint),
+            Err(error) => {
+                let message = format!("Skipped waypoint: {error}");
+                warnings.push(ParseIssue::new(message).with_record(&record))
+            }
+        }
     }
 
     Ok(waypoints)
 }
 
-pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<Waypoint, String> {
+pub fn parse_waypoint(
+    column_map: &ColumnMap,
+    record: &StringRecord,
+    warnings: &mut Vec<ParseIssue>,
+) -> Result<Waypoint, String> {
     let name = record.get(column_map.name).unwrap_or_default();
     if name.is_empty() {
         return Err("Name field cannot be empty".into());
@@ -51,19 +59,44 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
     let elevation = elev_str.parse()?;
 
     let style_str = record.get(column_map.style).unwrap_or_default();
-    let style = parse_waypoint_style(style_str);
+    let style = match parse_waypoint_style(style_str) {
+        Some(style) => style,
+        None => {
+            let message = format!("Ignored field: Unknown waypoint style: '{style_str}'");
+            warnings.push(ParseIssue::new(message).with_record(record));
+            WaypointStyle::Unknown
+        }
+    };
 
     let runway_direction = column_map.rwdir.and_then(|idx| record.get(idx));
     let runway_direction = runway_direction.filter(|s| !s.is_empty());
-    let runway_direction = runway_direction.map(parse_runway_direction).transpose()?;
+    let runway_direction = runway_direction.map(parse_runway_direction).transpose();
+    let runway_direction = runway_direction
+        .inspect_err(|error| {
+            let message = format!("Ignored field: {error}");
+            warnings.push(ParseIssue::new(message).with_record(record))
+        })
+        .unwrap_or_default();
 
     let runway_length = column_map.rwlen.and_then(|idx| record.get(idx));
     let runway_length = runway_length.filter(|s| !s.is_empty());
-    let runway_length = runway_length.map(|s| s.parse()).transpose()?;
+    let runway_length = runway_length.map(|s| s.parse()).transpose();
+    let runway_length = runway_length
+        .inspect_err(|error| {
+            let message = format!("Ignored field: {error}");
+            warnings.push(ParseIssue::new(message).with_record(record))
+        })
+        .unwrap_or_default();
 
     let runway_width = column_map.rwwidth.and_then(|idx| record.get(idx));
     let runway_width = runway_width.filter(|s| !s.is_empty());
-    let runway_width = runway_width.map(|s| s.parse()).transpose()?;
+    let runway_width = runway_width.map(|s| s.parse()).transpose();
+    let runway_width = runway_width
+        .inspect_err(|error| {
+            let message = format!("Ignored field: {error}");
+            warnings.push(ParseIssue::new(message).with_record(record))
+        })
+        .unwrap_or_default();
 
     let frequency = column_map.freq.and_then(|idx| record.get(idx));
     let frequency = frequency.unwrap_or_default().to_string();
@@ -95,8 +128,9 @@ pub fn parse_waypoint(column_map: &ColumnMap, record: &StringRecord) -> Result<W
     })
 }
 
-fn parse_waypoint_style(s: &str) -> WaypointStyle {
-    match s {
+fn parse_waypoint_style(s: &str) -> Option<WaypointStyle> {
+    Some(match s {
+        "0" => WaypointStyle::Unknown,
         "1" => WaypointStyle::Waypoint,
         "2" => WaypointStyle::GrassAirfield,
         "3" => WaypointStyle::Outlanding,
@@ -118,13 +152,13 @@ fn parse_waypoint_style(s: &str) -> WaypointStyle {
         "19" => WaypointStyle::ControlPoint,
         "20" => WaypointStyle::PgTakeOff,
         "21" => WaypointStyle::PgLandingZone,
-        _ => WaypointStyle::Unknown,
-    }
+        _ => return None,
+    })
 }
 
 fn parse_runway_direction(s: &str) -> Result<u16, String> {
     s.parse()
-        .map_err(|_| format!("Invalid runway direction: {s}"))
+        .map_err(|_| format!("Invalid runway direction: '{s}'"))
 }
 
 fn parse_pictures(s: &str) -> Vec<String> {

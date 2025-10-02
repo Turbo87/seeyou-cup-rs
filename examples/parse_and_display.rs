@@ -12,13 +12,23 @@ fn main() {
 
     let file_path = &args[1];
 
-    let cup_file = match CupFile::from_path(file_path) {
-        Ok(file) => file,
+    let (cup_file, warnings) = match CupFile::from_path(file_path) {
+        Ok(result) => result,
         Err(e) => {
             eprintln!("Error parsing file: {}", e);
             process::exit(1);
         }
     };
+
+    if !warnings.is_empty() {
+        println!("=== Warnings ({}) ===\n", warnings.len());
+        for warning in &warnings {
+            let line = warning.line().map(|l| format!("line {l}:"));
+            let line = line.as_deref().unwrap_or_default();
+            println!("- {line}{}", warning.message());
+        }
+        println!();
+    }
 
     println!("=== Waypoints ({}) ===\n", cup_file.waypoints.len());
 

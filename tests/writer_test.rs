@@ -5,7 +5,6 @@ use seeyou_cup::{
     Task, TaskOptions, Waypoint, WaypointStyle,
 };
 use std::io::Cursor;
-use std::str::FromStr;
 
 #[test]
 fn test_write_empty_cup_file() {
@@ -460,9 +459,10 @@ fn test_multiple_tasks() {
     assert_snapshot!(output);
 
     // Verify round-trip works with multiple tasks
-    let parsed = assert_ok!(CupFile::from_str(&output));
+    let (parsed, warnings) = assert_ok!(CupFile::from_str(&output));
     assert_eq!(parsed.waypoints.len(), 3);
     assert_eq!(parsed.tasks.len(), 3);
+    assert_eq!(warnings.len(), 0);
 
     // Verify first task
     let task1 = &parsed.tasks[0];
@@ -508,13 +508,14 @@ fn test_encoding_windows1252_roundtrip() {
 
     // Parse it back to verify it worked
     let cursor = Cursor::new(buffer);
-    let parsed = assert_ok!(CupFile::from_reader_with_encoding(
+    let (parsed, warnings) = assert_ok!(CupFile::from_reader_with_encoding(
         cursor,
         CupEncoding::Windows1252
     ));
     assert_eq!(parsed.waypoints.len(), 1);
     assert_eq!(parsed.waypoints[0].name, "Zürich");
     assert_eq!(&parsed.waypoints[0].description, "Passhöhe");
+    assert_eq!(warnings.len(), 0);
 }
 
 #[test]
@@ -543,8 +544,9 @@ fn test_comprehensive_roundtrip() {
     assert_snapshot!(output);
 
     // Verify round-trip works
-    let parsed = assert_ok!(CupFile::from_str(&output));
+    let (parsed, warnings) = assert_ok!(CupFile::from_str(&output));
     assert_eq!(parsed.waypoints.len(), 1);
+    assert_eq!(warnings.len(), 0);
 
     let wp = &parsed.waypoints[0];
     assert_eq!(wp.name, "Complex Airport, \"Test\"");

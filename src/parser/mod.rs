@@ -15,7 +15,10 @@ use std::io::Read;
 
 pub const TASK_SEPARATOR: &str = "-----Related Tasks-----";
 
-pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, Error> {
+pub fn parse<R: Read>(
+    mut reader: R,
+    encoding: Option<CupEncoding>,
+) -> Result<(CupFile, Vec<ParseIssue>), Error> {
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes)?;
 
@@ -49,11 +52,13 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, Error> {
     }
 }
 
-fn parse_content(content: &str) -> Result<CupFile, Error> {
+fn parse_content(content: &str) -> Result<(CupFile, Vec<ParseIssue>), Error> {
     let content = content.trim();
     if content.is_empty() {
         return Err(ParseIssue::new("Empty file").into());
     }
+
+    let mut warnings = Vec::new();
 
     let mut csv_reader = csv::ReaderBuilder::new()
         .flexible(true)
@@ -64,8 +69,8 @@ fn parse_content(content: &str) -> Result<CupFile, Error> {
         .map_err(|error| ParseIssue::new(error).with_record(headers))?;
 
     let mut csv_iter = csv_reader.records();
-    let waypoints = parse_waypoints(&mut csv_iter, &column_map)?;
-    let tasks = parse_tasks(&mut csv_iter, &column_map)?;
+    let waypoints = parse_waypoints(&mut csv_iter, &column_map, &mut warnings)?;
+    let tasks = parse_tasks(&mut csv_iter, &column_map, &mut warnings)?;
 
-    Ok(CupFile { waypoints, tasks })
+    Ok((CupFile { waypoints, tasks }, warnings))
 }

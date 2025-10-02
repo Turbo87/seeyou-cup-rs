@@ -40,4 +40,12 @@ impl ParseIssue {
         let line = record.position().map(|p| p.line());
         Self { message, line }
     }
+
+    pub fn message(&self) -> &str {
+        &self.message
+    }
+
+    pub fn line(&self) -> Option<u64> {
+        self.line
+    }
 }

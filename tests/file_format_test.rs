@@ -1,6 +1,5 @@
 use claims::{assert_none, assert_ok, assert_some_eq};
 use seeyou_cup::{CupFile, WaypointStyle};
-use std::str::FromStr;
 
 #[test]
 fn test_arbitrary_column_order() {
@@ -8,7 +7,7 @@ fn test_arbitrary_column_order() {
 5147.809N,00405.003W,525ft,"Cross Hands","CSS",UK,1,,,,"Turn Point"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Cross Hands");
     assert_eq!(cup.waypoints[0].code, "CSS");
@@ -22,7 +21,7 @@ fn test_missing_optional_columns_after_style() {
 "Cross Hands","CSS",UK,5147.809N,00405.003W,525ft,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Cross Hands");
     assert_eq!(cup.waypoints[0].runway_direction, None);
@@ -38,7 +37,7 @@ fn test_header_with_subset_of_fields() {
 "Waypoint2",,,5148.000N,00406.000W,600m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 2);
     assert_eq!(cup.waypoints[0].name, "Waypoint1");
     assert_eq!(cup.waypoints[0].code, ""); // Empty string default
@@ -51,7 +50,7 @@ fn test_escaped_quotes_within_quoted_fields() {
 "Test ""Quote""","T",XX,5147.809N,00405.003W,0m,1,,,,,"Description with ""quotes"""
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, r#"Test "Quote""#);
     assert_eq!(
         &cup.waypoints[0].description,
@@ -67,7 +66,7 @@ Line 2
 Line 3\"
 ";
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, "Test");
     assert_eq!(&cup.waypoints[0].description, "Line 1\nLine 2\nLine 3");
 }
@@ -78,7 +77,7 @@ fn test_case_insensitive_header_names() {
 "Test","T",XX,5147.809N,00405.003W,500m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Test");
 }
@@ -89,7 +88,7 @@ fn test_fields_with_commas_are_quoted() {
 "Test","T",XX,5147.809N,00405.003W,0m,1,,,,,"Description with, comma"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(&cup.waypoints[0].description, "Description with, comma");
 }
 
@@ -99,7 +98,7 @@ fn test_empty_optional_fields() {
 "Test",,,5147.809N,00405.003W,0m,1,,,,,,,
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, "Test");
     assert_eq!(cup.waypoints[0].code, "");
     assert_eq!(cup.waypoints[0].country, "");
@@ -117,7 +116,7 @@ fn test_waypoints_only_file() {
 "Waypoint2","W2",XX,5148.000N,00406.000W,600m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 2);
     assert_eq!(cup.tasks.len(), 0);
 }
@@ -132,7 +131,7 @@ fn test_file_with_waypoints_and_tasks() {
 "Task 1","Start","TP1","Finish"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 3);
     assert_eq!(cup.tasks.len(), 1);
     assert_some_eq!(&cup.tasks[0].description, "Task 1");
@@ -146,7 +145,7 @@ fn test_related_tasks_separator() {
 ,"Waypoint","Waypoint"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.tasks.len(), 1);
     assert_eq!(cup.tasks[0].description, None);
@@ -158,7 +157,7 @@ fn test_arbitrary_column_order_with_all_fields() {
 "Airport desc",5,504.0m,01410.467E,4621.379N,SI,"LJBL","Lesce",123.500,144,1130.0m,30m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints[0].name, "Lesce");
     assert_eq!(cup.waypoints[0].code, "LJBL");
     assert_eq!(cup.waypoints[0].country, "SI");

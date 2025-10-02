@@ -9,6 +9,7 @@ mod writer;
 pub use error::Error;
 pub use types::*;
 
+use crate::error::ParseIssue;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
@@ -33,18 +34,18 @@ pub struct CupFile {
 }
 
 impl CupFile {
-    pub fn from_reader<R: Read>(reader: R) -> Result<Self, Error> {
+    pub fn from_reader<R: Read>(reader: R) -> Result<(Self, Vec<ParseIssue>), Error> {
         parser::parse(reader, None)
     }
 
     pub fn from_reader_with_encoding<R: Read>(
         reader: R,
         encoding: CupEncoding,
-    ) -> Result<Self, Error> {
+    ) -> Result<(Self, Vec<ParseIssue>), Error> {
         parser::parse(reader, Some(encoding))
     }
 
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<Self, Error> {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<(Self, Vec<ParseIssue>), Error> {
         let file = File::open(path)?;
         Self::from_reader(file)
     }
@@ -52,9 +53,15 @@ impl CupFile {
     pub fn from_path_with_encoding<P: AsRef<Path>>(
         path: P,
         encoding: CupEncoding,
-    ) -> Result<Self, Error> {
+    ) -> Result<(Self, Vec<ParseIssue>), Error> {
         let file = File::open(path)?;
         Self::from_reader_with_encoding(file, encoding)
+    }
+
+    // The trait can't be implemented for `(Self, Vec<ParseIssue>)`
+    #[allow(clippy::should_implement_trait)]
+    pub fn from_str(s: &str) -> Result<(Self, Vec<ParseIssue>), Error> {
+        Self::from_reader(s.as_bytes())
     }
 
     pub fn to_writer<W: Write>(&self, writer: W) -> Result<(), Error> {
@@ -86,13 +93,5 @@ impl CupFile {
         let mut buf = Vec::new();
         self.to_writer(&mut buf)?;
         String::from_utf8(buf).map_err(|e| Error::Encoding(e.to_string()))
-    }
-}
-
-impl FromStr for CupFile {
-    type Err = Error;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        Self::from_reader(s.as_bytes())
     }
 }

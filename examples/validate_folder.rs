@@ -54,7 +54,21 @@ fn main() {
         print!("Parsing {}... ", filename);
 
         match CupFile::from_path(path) {
-            Ok(cup_file) => {
+            Ok((cup_file, warnings)) if !warnings.is_empty() => {
+                println!(
+                    "⚠ ({} waypoints, {} tasks, {} warnings)",
+                    cup_file.waypoints.len(),
+                    cup_file.tasks.len(),
+                    warnings.len()
+                );
+                for warning in &warnings {
+                    let line = warning.line().map(|l| format!(" on line {l}"));
+                    let line = line.as_deref().unwrap_or_default();
+                    println!("  Warning{line}: {}", warning.message());
+                }
+                success_count += 1;
+            }
+            Ok((cup_file, _)) => {
                 println!(
                     "✓ ({} waypoints, {} tasks)",
                     cup_file.waypoints.len(),

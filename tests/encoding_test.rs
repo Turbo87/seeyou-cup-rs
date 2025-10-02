@@ -21,36 +21,36 @@ fn schwarzwald() -> PathBuf {
 
 #[test]
 fn test_encoding_auto_detect_utf8() {
-    let cup = assert_ok!(CupFile::from_path(schwarzwald()));
+    let (cup, _) = assert_ok!(CupFile::from_path(schwarzwald()));
     assert_eq!(cup.waypoints.len(), 64);
     assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen Geländeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 }
 
 #[test]
 fn test_encoding_auto_detect_windows1252() {
-    let cup = assert_ok!(CupFile::from_path(hotzenwald()));
+    let (cup, _) = assert_ok!(CupFile::from_path(hotzenwald()));
     assert_eq!(cup.waypoints.len(), 252);
     assert_snapshot!(cup.waypoints[121].description, @"Passhöhe");
 }
 
 #[test]
 fn test_explicit_utf8() {
-    let cup = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Utf8));
+    let (cup, _) = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Utf8));
     assert_eq!(cup.waypoints.len(), 64);
     assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen Geländeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 
-    let cup = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Utf8));
+    let (cup, _) = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Utf8));
     assert_eq!(cup.waypoints.len(), 252);
     assert_snapshot!(cup.waypoints[121].description, @"Passh�he");
 }
 
 #[test]
 fn test_explicit_windows1252() {
-    let cup = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Windows1252));
+    let (cup, _) = assert_ok!(CupFile::from_path_with_encoding(schwarzwald(), Windows1252));
     assert_eq!(cup.waypoints.len(), 64);
     assert_snapshot!(cup.waypoints[2].description, @r"Landerichtung 24 wegen GelÃ¤ndeanstieg vorzuziehen.\nAnfang der Wiese ist sumpfig!");
 
-    let cup = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Windows1252));
+    let (cup, _) = assert_ok!(CupFile::from_path_with_encoding(hotzenwald(), Windows1252));
     assert_eq!(cup.waypoints.len(), 252);
     assert_snapshot!(cup.waypoints[121].description, @"Passhöhe");
 }
@@ -60,7 +60,7 @@ fn test_all_fixtures_parse() {
     let fixtures_path = Path::new("tests/fixtures");
     for (fixture, encoding) in &FIXTURES {
         let path = fixtures_path.join(fixture);
-        let cup = assert_ok!(CupFile::from_path_with_encoding(path, *encoding));
+        let (cup, _) = assert_ok!(CupFile::from_path_with_encoding(path, *encoding));
         assert!(!cup.waypoints.is_empty(), "No waypoints in {}", fixture);
     }
 }
@@ -70,7 +70,7 @@ fn test_all_fixtures_parse_auto_detect() {
     let fixtures_path = Path::new("tests/fixtures");
     for (fixture, _) in &FIXTURES {
         let path = fixtures_path.join(fixture);
-        let cup = assert_ok!(CupFile::from_path(path));
+        let (cup, _) = assert_ok!(CupFile::from_path(path));
         assert!(!cup.waypoints.is_empty(), "No waypoints in {}", fixture);
     }
 }

@@ -4,7 +4,7 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
 
     if bytes_len < 9 {
         return Err(format!(
-            "Invalid latitude format: {s} (expected 9 characters, got {bytes_len})",
+            "Invalid latitude format: '{s}' (expected 9 characters, got {bytes_len})",
         ));
     }
 
@@ -16,7 +16,7 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
         || (hemisphere != b'N' && hemisphere != b'S')
     {
         return Err(format!(
-            "Invalid latitude format: {s} (unexpected character)"
+            "Invalid latitude format: '{s}' (unexpected character)"
         ));
     }
 
@@ -24,7 +24,7 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
     let minutes: f64 = s[2..bytes_len - 1].parse().unwrap();
     if !(0.0..60.0).contains(&minutes) {
         return Err(format!(
-            "Latitude minutes out of range: {minutes} (must be between 0 and 60)",
+            "Latitude minutes out of range: '{minutes}' (must be between 0 and 60)",
         ));
     }
 
@@ -37,8 +37,7 @@ pub fn parse_latitude(s: &str) -> Result<f64, String> {
     // Validate range
     if !(-90.0..=90.0).contains(&decimal_degrees) {
         return Err(format!(
-            "Latitude out of range: {} (must be between -90 and 90)",
-            decimal_degrees
+            "Latitude out of range: '{decimal_degrees}' (must be between -90 and 90)",
         ));
     }
 
@@ -51,7 +50,7 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
 
     if bytes_len < 10 {
         return Err(format!(
-            "Invalid longitude format: {s} (expected 10 characters, got {bytes_len})",
+            "Invalid longitude format: '{s}' (expected 10 characters, got {bytes_len})",
         ));
     }
 
@@ -63,7 +62,7 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
         || (hemisphere != b'E' && hemisphere != b'W')
     {
         return Err(format!(
-            "Invalid longitude format: {s} (unexpected character)"
+            "Invalid longitude format: '{s}' (unexpected character)"
         ));
     }
 
@@ -71,7 +70,7 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
     let minutes: f64 = s[3..bytes_len - 1].parse().unwrap();
     if !(0.0..60.0).contains(&minutes) {
         return Err(format!(
-            "Longitude minutes out of range: {minutes} (must be between 0 and 60)",
+            "Longitude minutes out of range: '{minutes}' (must be between 0 and 60)",
         ));
     }
 
@@ -84,8 +83,7 @@ pub fn parse_longitude(s: &str) -> Result<f64, String> {
     // Validate range
     if !(-180.0..=180.0).contains(&decimal_degrees) {
         return Err(format!(
-            "Longitude out of range: {} (must be between -180 and 180)",
-            decimal_degrees
+            "Longitude out of range: '{decimal_degrees}' (must be between -180 and 180)",
         ));
     }
 
@@ -123,16 +121,16 @@ mod tests {
 
     #[test]
     fn test_latitude_errors() {
-        insta::assert_snapshot!(assert_err!(parse_latitude("123N")), @"Invalid latitude format: 123N (expected 9 characters, got 4)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("123456789N")), @"Invalid latitude format: 123456789N (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809X")), @"Invalid latitude format: 5147.809X (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809E")), @"Invalid latitude format: 5147.809E (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("XX47.809N")), @"Invalid latitude format: XX47.809N (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("5147.XXXN")), @"Invalid latitude format: 5147.XXXN (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("5160.000N")), @"Latitude minutes out of range: 60 (must be between 0 and 60)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("51123456N")), @"Invalid latitude format: 51123456N (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("9100.000N")), @"Latitude out of range: 91 (must be between -90 and 90)");
-        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809Ñ")), @"Invalid latitude format: 5147.809Ñ (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("123N")), @"Invalid latitude format: '123N' (expected 9 characters, got 4)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("123456789N")), @"Invalid latitude format: '123456789N' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809X")), @"Invalid latitude format: '5147.809X' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809E")), @"Invalid latitude format: '5147.809E' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("XX47.809N")), @"Invalid latitude format: 'XX47.809N' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("5147.XXXN")), @"Invalid latitude format: '5147.XXXN' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("5160.000N")), @"Latitude minutes out of range: '60' (must be between 0 and 60)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("51123456N")), @"Invalid latitude format: '51123456N' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("9100.000N")), @"Latitude out of range: '91' (must be between -90 and 90)");
+        insta::assert_snapshot!(assert_err!(parse_latitude("5147.809Ñ")), @"Invalid latitude format: '5147.809Ñ' (unexpected character)");
     }
 
     #[test]
@@ -160,15 +158,15 @@ mod tests {
 
     #[test]
     fn test_longitude_errors() {
-        insta::assert_snapshot!(assert_err!(parse_longitude("123E")), @"Invalid longitude format: 123E (expected 10 characters, got 4)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("12345678901E")), @"Invalid longitude format: 12345678901E (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467X")), @"Invalid longitude format: 01410.467X (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467N")), @"Invalid longitude format: 01410.467N (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("XXX10.467E")), @"Invalid longitude format: XXX10.467E (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("01410.XXXE")), @"Invalid longitude format: 01410.XXXE (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("01460.000E")), @"Longitude minutes out of range: 60 (must be between 0 and 60)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("014123456E")), @"Invalid longitude format: 014123456E (unexpected character)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("18100.000E")), @"Longitude out of range: 181 (must be between -180 and 180)");
-        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467É")), @"Invalid longitude format: 01410.467É (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("123E")), @"Invalid longitude format: '123E' (expected 10 characters, got 4)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("12345678901E")), @"Invalid longitude format: '12345678901E' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467X")), @"Invalid longitude format: '01410.467X' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467N")), @"Invalid longitude format: '01410.467N' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("XXX10.467E")), @"Invalid longitude format: 'XXX10.467E' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("01410.XXXE")), @"Invalid longitude format: '01410.XXXE' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("01460.000E")), @"Longitude minutes out of range: '60' (must be between 0 and 60)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("014123456E")), @"Invalid longitude format: '014123456E' (unexpected character)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("18100.000E")), @"Longitude out of range: '181' (must be between -180 and 180)");
+        insta::assert_snapshot!(assert_err!(parse_longitude("01410.467É")), @"Invalid longitude format: '01410.467É' (unexpected character)");
     }
 }

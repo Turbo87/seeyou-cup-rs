@@ -1,6 +1,5 @@
 use claims::{assert_err, assert_ok, assert_some};
 use seeyou_cup::CupFile;
-use std::str::FromStr;
 
 #[test]
 fn test_empty_file() {
@@ -12,7 +11,7 @@ fn test_empty_file() {
 #[test]
 fn test_header_only_no_waypoints() {
     let input = "name,code,country,lat,lon,elev,style\n";
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(cup.tasks.len(), 0);
 }
@@ -58,9 +57,10 @@ fn test_malformed_csv_unclosed_quotes() {
     let input = r#"name,code,country,lat,lon,elev,style
 "Test,T,XX,5147.809N,00405.003W,500m,1
 "#;
-    let err = assert_err!(CupFile::from_str(input));
-    // CSV library error - exact message may vary
-    assert!(format!("{}", err).contains("CSV error") || format!("{}", err).contains("Parse error"));
+    let (cup, warnings) = assert_ok!(CupFile::from_str(input));
+    assert_eq!(cup.waypoints.len(), 0);
+    assert_eq!(warnings.len(), 1);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid latitude format: '' (expected 9 characters, got 0)", line: Some(2) }]"#);
 }
 
 #[test]
@@ -68,15 +68,17 @@ fn test_truncated_file_incomplete_row() {
     let input = r#"name,code,country,lat,lon,elev,style
 "Test",T,XX,5147.809N,00405.003W
 "#;
-    let err = assert_err!(CupFile::from_str(input));
-    insta::assert_snapshot!(err, @"Parse error on line 2: Invalid elevation:");
+    let (cup, warnings) = assert_ok!(CupFile::from_str(input));
+    assert_eq!(cup.waypoints.len(), 0);
+    assert_eq!(warnings.len(), 1);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid elevation: ''", line: Some(2) }]"#);
 }
 
 #[test]
 fn test_crlf_line_endings() {
     let input =
         "name,code,country,lat,lon,elev,style\r\n\"Test\",T,XX,5147.809N,00405.003W,500m,1\r\n";
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Test");
 }
@@ -86,7 +88,7 @@ fn test_leading_trailing_whitespace_in_field_values() {
     let input = r#"name,code,country,lat,lon,elev,style
 "  Test  ","  T  ","  XX  ",5147.809N,00405.003W,500m,1
 "#;
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     // CSV parser should preserve whitespace within quoted fields
     assert_eq!(cup.waypoints[0].name, "  Test  ");
     assert_eq!(cup.waypoints[0].code, "  T  ");
@@ -107,7 +109,7 @@ fn test_unicode_characters_beyond_ascii() {
     let input = r#"name,code,country,lat,lon,elev,style,desc
 "Zürich ✈️","ZUR","CH",4723.033N,00829.967E,408m,5,"Airport with émojis and ümlaunts"
 "#;
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].name, "Zürich ✈️");
     assert_eq!(
@@ -135,7 +137,7 @@ fn test_task_with_inline_waypoint_definition() {
 "Task with inline","Start"
 Point=1,"Inline TP","T1","XX",5148.000N,00406.000W,600m,1
 "#;
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.tasks.len(), 1);
 
@@ -154,7 +156,7 @@ fn test_mixed_inline_and_referenced_waypoints() {
 "Mixed Task","Start","Finish"
 Point=1,"Inline TP","T1","XX",5148.000N,00406.000W,600m,1
 "#;
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 2);
     assert_eq!(cup.tasks.len(), 1);
 
@@ -177,13 +179,13 @@ ObsZone=0,Style=0,R1=3000m,A1=180,R2=1000m,A2=90,A12=45,Line=True
 ObsZone=1,Style=1,R1=500m,A1=0,R2=0m,A2=0,A12=0,Line=False
 STARTS="Start","Start2"
 "#;
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
 
     // Write back to string
     let output = assert_ok!(cup.to_string());
 
     // Parse the output again
-    let cup2 = assert_ok!(CupFile::from_str(&output));
+    let (cup2, _) = assert_ok!(CupFile::from_str(&output));
 
     // Verify task preservation
     assert_eq!(cup2.tasks.len(), 1);

@@ -7,6 +7,7 @@ use csv::StringRecord;
 pub fn parse_tasks(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
+    warnings: &mut Vec<ParseIssue>,
 ) -> Result<Vec<Task>, Error> {
     let mut tasks = Vec::new();
 
@@ -41,7 +42,7 @@ pub fn parse_tasks(
                 csv_iter.next();
             } else if next_line.starts_with(b"Point=") {
                 let (point_index, inline_waypoint) =
-                    parse_inline_waypoint_line_with_index(record, column_map)?;
+                    parse_inline_waypoint_line_with_index(record, column_map, warnings)?;
                 // Add the inline waypoint to the points field
                 task.points.push((point_index as u32, inline_waypoint));
                 csv_iter.next();
@@ -192,6 +193,7 @@ fn parse_starts_line(record: &StringRecord) -> Result<Vec<String>, Error> {
 fn parse_inline_waypoint_line_with_index(
     record: &StringRecord,
     column_map: &ColumnMap,
+    warnings: &mut Vec<ParseIssue>,
 ) -> Result<(usize, Waypoint), Error> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
 
@@ -199,13 +201,13 @@ fn parse_inline_waypoint_line_with_index(
     let point_idx_str = record[0].trim_start_matches("Point=");
     let point_index = point_idx_str
         .parse::<usize>()
-        .map_err(|_| ParseIssue::new(format!("Invalid point index: {point_idx_str}")))?;
+        .map_err(|_| ParseIssue::new(format!("Invalid point index: '{point_idx_str}'")))?;
 
     // Skip the Point=N field and create a proper waypoint record
     let waypoint_record = StringRecord::from(record.iter().skip(1).collect::<Vec<_>>());
 
     // Parse as a normal waypoint using the same headers as the waypoint section
-    let waypoint = waypoint::parse_waypoint(column_map, &waypoint_record)
+    let waypoint = waypoint::parse_waypoint(column_map, &waypoint_record, warnings)
         .map_err(|error| ParseIssue::new(error).with_record(&waypoint_record))?;
 
     Ok((point_index, waypoint))

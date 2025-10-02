@@ -34,19 +34,19 @@ macro_rules! dimension_enum {
                     if let Some(value_str) = s.strip_suffix($suffix) {
                         let value: f64 = value_str
                             .parse()
-                            .map_err(|_| format!("Invalid {}: {s}", $display_name))?;
+                            .map_err(|_| format!("Invalid {}: '{s}'", $display_name))?;
                         return Ok($name::$variant(value));
                     }
                 )*
 
                 if let Some(unit_start) = s.chars().position(|c| c.is_alphabetic()) {
                     let unit = &s[unit_start..];
-                    return Err(format!("Invalid {} unit: {unit}", $display_name));
+                    return Err(format!("Invalid {} unit: '{unit}'", $display_name));
                 }
 
                 let value: f64 = s
                     .parse()
-                    .map_err(|_| format!("Invalid {}: {s}", $display_name))?;
+                    .map_err(|_| format!("Invalid {}: '{s}'", $display_name))?;
                 Ok($name::Meters(value))
             }
         }

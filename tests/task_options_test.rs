@@ -1,6 +1,5 @@
 use claims::{assert_matches, assert_ok, assert_some, assert_some_eq};
 use seeyou_cup::{CupFile, Distance, Elevation, ObsZoneStyle, WaypointStyle};
-use std::str::FromStr;
 
 #[test]
 fn test_parse_options_line() {
@@ -13,7 +12,7 @@ fn test_parse_options_line() {
 Options,NoStart=12:34:56,TaskTime=01:45:12,WpDis=False,NearDis=0.7km,NearAlt=300.0m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.tasks.len(), 1);
 
     let options = assert_some!(&cup.tasks[0].options);
@@ -33,7 +32,7 @@ fn test_nostart_time() {
 Options,NoStart=08:30:00
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(&options.no_start, "08:30:00");
 }
@@ -47,7 +46,7 @@ fn test_tasktime_duration() {
 Options,TaskTime=02:30:45
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(&options.task_time, "02:30:45");
 }
@@ -61,7 +60,7 @@ fn test_wpdis_boolean_true() {
 Options,WpDis=True
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.wp_dis, true);
 }
@@ -75,7 +74,7 @@ fn test_wpdis_boolean_false() {
 Options,WpDis=False
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.wp_dis, false);
 }
@@ -89,7 +88,7 @@ fn test_neardis_with_km() {
 Options,NearDis=1.5km
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     let near_dis = assert_some!(&options.near_dis);
     assert_matches!(near_dis, Distance::Kilometers(v) if (*v - 1.5).abs() < 0.01);
@@ -104,7 +103,7 @@ fn test_neardis_with_meters() {
 Options,NearDis=500m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     let near_dis = assert_some!(&options.near_dis);
     assert_matches!(near_dis, Distance::Meters(500.0));
@@ -119,7 +118,7 @@ fn test_nearalt_with_unit() {
 Options,NearAlt=300.0m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     let near_alt = assert_some!(&options.near_alt);
     assert_matches!(near_alt, Elevation::Meters(v) if (*v - 300.0).abs() < 0.01);
@@ -134,7 +133,7 @@ fn test_mindis_boolean() {
 Options,MinDis=True
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.min_dis, true);
 }
@@ -148,7 +147,7 @@ fn test_randomorder_boolean() {
 Options,RandomOrder=True
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.random_order, true);
 }
@@ -162,7 +161,7 @@ fn test_maxpts_number() {
 Options,MaxPts=10
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.max_pts, 10);
 }
@@ -176,7 +175,7 @@ fn test_beforepts_number() {
 Options,BeforePts=2
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.before_pts, 2);
 }
@@ -190,7 +189,7 @@ fn test_afterpts_number() {
 Options,AfterPts=1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     assert_some_eq!(options.after_pts, 1);
 }
@@ -204,7 +203,7 @@ fn test_bonus_number() {
 Options,Bonus=50.5
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let options = assert_some!(&cup.tasks[0].options);
     let bonus = assert_some!(options.bonus);
     assert!((bonus - 50.5).abs() < 0.01);
@@ -221,7 +220,7 @@ ObsZone=0,Style=2,R1=400m,A1=180,Line=1
 ObsZone=1,Style=0,R1=35000m,A1=30,R2=12000m,A2=12,A12=123.4
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.tasks.len(), 1);
     assert_eq!(cup.tasks[0].observation_zones.len(), 2);
 
@@ -242,7 +241,7 @@ fn test_obszone_index() {
 ObsZone=0,Style=0,R1=1000m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_eq!(oz.index, 0);
 }
@@ -260,7 +259,7 @@ ObsZone=0,Style={},R1=1000m
             style
         );
 
-        let cup = assert_ok!(CupFile::from_str(&input));
+        let (cup, _) = assert_ok!(CupFile::from_str(&input));
         let oz = &cup.tasks[0].observation_zones[0];
         assert_eq!(oz.style as u8, style);
     }
@@ -275,7 +274,7 @@ fn test_obszone_r1_radius() {
 ObsZone=0,Style=0,R1=500m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_matches!(&oz.r1, Some(Distance::Meters(500.0)));
 }
@@ -289,7 +288,7 @@ fn test_obszone_a1_angle() {
 ObsZone=0,Style=0,R1=500m,A1=90
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_some_eq!(oz.a1, 90.0);
 }
@@ -303,7 +302,7 @@ fn test_obszone_r2_radius() {
 ObsZone=0,Style=0,R1=500m,R2=1000m
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_matches!(&oz.r2, Some(Distance::Meters(1000.0)));
 }
@@ -317,7 +316,7 @@ fn test_obszone_a2_angle() {
 ObsZone=0,Style=0,R1=500m,A2=45
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_some_eq!(oz.a2, 45.0);
 }
@@ -331,7 +330,7 @@ fn test_obszone_a12_angle() {
 ObsZone=0,Style=0,R1=500m,A12=123.4
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     let a12 = assert_some!(oz.a12);
     assert!((a12 - 123.4).abs() < 0.01);
@@ -346,7 +345,7 @@ fn test_obszone_line_boolean() {
 ObsZone=0,Style=0,R1=500m,Line=1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let oz = &cup.tasks[0].observation_zones[0];
     assert_some_eq!(oz.line, true);
 }
@@ -363,7 +362,7 @@ fn test_parse_starts_line() {
 STARTS=Celovec,Hodos,Ratitovec,Jamnik
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.tasks.len(), 1);
     assert_eq!(cup.tasks[0].multiple_starts.len(), 4);
     assert_eq!(cup.tasks[0].multiple_starts[0], "Celovec");
@@ -383,7 +382,7 @@ fn test_multiple_starts_waypoints_defined() {
 STARTS=Start1,Start2
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.tasks[0].multiple_starts.len(), 2);
     assert_eq!(cup.tasks[0].multiple_starts[0], "Start1");
     assert_eq!(cup.tasks[0].multiple_starts[1], "Start2");
@@ -399,7 +398,7 @@ fn test_inline_waypoint_basic() {
 Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.tasks.len(), 1);
     assert_eq!(cup.tasks[0].waypoint_names.len(), 2); // "Start" and "Finish"
     assert_eq!(cup.tasks[0].points.len(), 1); // One inline waypoint
@@ -422,7 +421,7 @@ fn test_inline_waypoint_with_all_fields() {
 Point=1,"Airport",AIRP,SI,4621.379N,01410.467E,504.0m,5,144,1130.0m,30m,123.500,"Test Airport","User data","pic1.jpg;pic2.jpg"
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
 
     // Check that we have one inline waypoint
     assert_eq!(cup.tasks[0].points.len(), 1);
@@ -453,7 +452,7 @@ Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
 Point=2,"TP2",T2,XX,5148.500N,00406.500W,650m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
 
     // Check waypoint names (references)
     assert_eq!(cup.tasks[0].waypoint_names.len(), 4);
@@ -488,9 +487,9 @@ fn test_inline_waypoint_roundtrip() {
 Point=1,"TP1",T1,XX,5148.000N,00406.000W,600m,1
 "#;
 
-    let cup = assert_ok!(CupFile::from_str(input));
+    let (cup, _) = assert_ok!(CupFile::from_str(input));
     let output = assert_ok!(cup.to_string());
-    let cup2 = assert_ok!(CupFile::from_str(&output));
+    let (cup2, _) = assert_ok!(CupFile::from_str(&output));
 
     // Check that the roundtrip preserved the inline waypoint
     assert_eq!(cup.tasks[0].points.len(), cup2.tasks[0].points.len());
