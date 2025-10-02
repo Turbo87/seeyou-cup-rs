@@ -2,13 +2,13 @@ use crate::error::ParseIssue;
 use crate::parser::TASK_SEPARATOR;
 use crate::parser::basics::{parse_latitude, parse_longitude};
 use crate::parser::column_map::ColumnMap;
-use crate::{CupError, Waypoint, WaypointStyle};
+use crate::{Error, Waypoint, WaypointStyle};
 use csv::StringRecord;
 
 pub fn parse_waypoints(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
-) -> Result<Vec<Waypoint>, CupError> {
+) -> Result<Vec<Waypoint>, Error> {
     let mut waypoints = Vec::new();
     for result in csv_iter {
         let record = result?;

@@ -5,7 +5,7 @@ mod waypoint;
 
 use crate::CupEncoding;
 use crate::CupFile;
-use crate::error::{CupError, ParseIssue};
+use crate::error::{Error, ParseIssue};
 use crate::parser::column_map::ColumnMap;
 use crate::parser::task::parse_tasks;
 use crate::parser::waypoint::parse_waypoints;
@@ -15,7 +15,7 @@ use std::io::Read;
 
 pub const TASK_SEPARATOR: &str = "-----Related Tasks-----";
 
-pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, CupError> {
+pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<CupFile, Error> {
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes)?;
 
@@ -27,7 +27,7 @@ pub fn parse<R: Read>(mut reader: R, encoding: Option<CupEncoding>) -> Result<Cu
     parse_content(&content)
 }
 
-fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, str>, CupError> {
+fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, str>, Error> {
     let encoding_impl: &'static Encoding = match encoding {
         CupEncoding::Utf8 => UTF_8,
         CupEncoding::Windows1252 => WINDOWS_1252,
@@ -37,7 +37,7 @@ fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, s
     Ok(content)
 }
 
-fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
+fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, Error> {
     // Try UTF-8 first (strict)
     match std::str::from_utf8(bytes) {
         Ok(s) => Ok(s.into()),
@@ -49,7 +49,7 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, CupError> {
     }
 }
 
-fn parse_content(content: &str) -> Result<CupFile, CupError> {
+fn parse_content(content: &str) -> Result<CupFile, Error> {
     let content = content.trim();
     if content.is_empty() {
         return Err(ParseIssue::new("Empty file").into());

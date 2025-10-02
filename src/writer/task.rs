@@ -1,8 +1,8 @@
 use crate::writer::basics;
-use crate::{CupError, ObservationZone, Task, TaskOptions, Waypoint};
+use crate::{Error, ObservationZone, Task, TaskOptions, Waypoint};
 use csv::Writer;
 
-pub fn format_task(task: &Task) -> Result<String, CupError> {
+pub fn format_task(task: &Task) -> Result<String, Error> {
     let mut result = String::new();
 
     // Write the task line with waypoint names
@@ -21,7 +21,7 @@ pub fn format_task(task: &Task) -> Result<String, CupError> {
         csv_writer.flush()?;
         drop(csv_writer); // Explicitly drop to release borrow
 
-        let task_line = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
+        let task_line = String::from_utf8(output).map_err(|e| Error::Encoding(e.to_string()))?;
         result.push_str(task_line.trim_end());
     }
 
@@ -52,7 +52,7 @@ pub fn format_task(task: &Task) -> Result<String, CupError> {
     Ok(result)
 }
 
-fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
+fn format_task_options(options: &TaskOptions) -> Result<String, Error> {
     let mut parts = vec!["Options".to_string()];
 
     if let Some(no_start) = &options.no_start {
@@ -95,7 +95,7 @@ fn format_task_options(options: &TaskOptions) -> Result<String, CupError> {
     Ok(parts.join(","))
 }
 
-fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupError> {
+fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, Error> {
     let mut parts = vec![
         format!("ObsZone={}", obs_zone.index),
         format!("Style={}", obs_zone.style as u8),
@@ -123,13 +123,13 @@ fn format_observation_zone(obs_zone: &ObservationZone) -> Result<String, CupErro
     Ok(parts.join(","))
 }
 
-fn format_multiple_starts(starts: &[String]) -> Result<String, CupError> {
+fn format_multiple_starts(starts: &[String]) -> Result<String, Error> {
     // Format: STARTS="Start1","Start2","Start3"
     let quoted_starts: Vec<String> = starts.iter().map(|s| format!("\"{}\"", s)).collect();
     Ok(format!("STARTS={}", quoted_starts.join(",")))
 }
 
-fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<String, CupError> {
+fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<String, Error> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
     let pics = if waypoint.pictures.is_empty() {
         String::new()
@@ -172,6 +172,6 @@ fn format_inline_waypoint_line(index: usize, waypoint: &Waypoint) -> Result<Stri
         csv_writer.flush()?;
     }
 
-    let waypoint_line = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
+    let waypoint_line = String::from_utf8(output).map_err(|e| Error::Encoding(e.to_string()))?;
     Ok(waypoint_line.trim_end().to_string())
 }

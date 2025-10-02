@@ -1,11 +1,11 @@
 use crate::writer::basics::{format_latitude, format_longitude};
-use crate::{CupError, Waypoint};
+use crate::{Error, Waypoint};
 use csv::Writer;
 
 pub fn write_waypoint<W: std::io::Write>(
     writer: &mut Writer<W>,
     waypoint: &Waypoint,
-) -> Result<(), CupError> {
+) -> Result<(), Error> {
     let pics = if waypoint.pictures.is_empty() {
         String::new()
     } else {

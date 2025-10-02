@@ -2,7 +2,7 @@ use csv::StringRecord;
 use thiserror::Error;
 
 #[derive(Debug, Error)]
-pub enum CupError {
+pub enum Error {
     #[error(transparent)]
     Io(#[from] std::io::Error),
 
@@ -16,9 +16,9 @@ pub enum CupError {
     Csv(#[from] csv::Error),
 }
 
-impl From<ParseIssue> for CupError {
+impl From<ParseIssue> for Error {
     fn from(issue: ParseIssue) -> Self {
-        CupError::Parse(issue)
+        Error::Parse(issue)
     }
 }
 

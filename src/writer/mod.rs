@@ -4,7 +4,7 @@ mod waypoint;
 
 use crate::CupEncoding;
 use crate::CupFile;
-use crate::error::CupError;
+use crate::error::Error;
 use crate::writer::task::format_task;
 use crate::writer::waypoint::write_waypoint;
 use csv::Writer;
@@ -15,7 +15,7 @@ pub fn write<W: Write>(
     cup_file: &CupFile,
     mut writer: W,
     encoding: CupEncoding,
-) -> Result<(), CupError> {
+) -> Result<(), Error> {
     let content = format_cup_file(cup_file)?;
 
     let encoding_impl: &'static Encoding = match encoding {
@@ -25,7 +25,7 @@ pub fn write<W: Write>(
 
     let (encoded_bytes, _, had_errors) = encoding_impl.encode(&content);
     if had_errors {
-        return Err(CupError::Encoding(format!(
+        return Err(Error::Encoding(format!(
             "Failed to encode with {:?}",
             encoding
         )));
@@ -35,7 +35,7 @@ pub fn write<W: Write>(
     Ok(())
 }
 
-fn format_cup_file(cup_file: &CupFile) -> Result<String, CupError> {
+fn format_cup_file(cup_file: &CupFile) -> Result<String, Error> {
     let mut output = Vec::new();
     let mut csv_writer = Writer::from_writer(&mut output);
 
@@ -51,7 +51,7 @@ fn format_cup_file(cup_file: &CupFile) -> Result<String, CupError> {
     csv_writer.flush()?;
     drop(csv_writer);
 
-    let mut result = String::from_utf8(output).map_err(|e| CupError::Encoding(e.to_string()))?;
+    let mut result = String::from_utf8(output).map_err(|e| Error::Encoding(e.to_string()))?;
 
     if !cup_file.tasks.is_empty() {
         result.push_str("-----Related Tasks-----\n");

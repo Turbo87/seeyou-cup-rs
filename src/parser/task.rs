@@ -1,13 +1,13 @@
 use crate::error::ParseIssue;
 use crate::parser::column_map::ColumnMap;
 use crate::parser::waypoint;
-use crate::{CupError, ObsZoneStyle, ObservationZone, Task, TaskOptions, Waypoint};
+use crate::{Error, ObsZoneStyle, ObservationZone, Task, TaskOptions, Waypoint};
 use csv::StringRecord;
 
 pub fn parse_tasks(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
-) -> Result<Vec<Task>, CupError> {
+) -> Result<Vec<Task>, Error> {
     let mut tasks = Vec::new();
 
     let mut csv_iter = csv_iter.peekable();
@@ -59,7 +59,7 @@ pub fn parse_tasks(
     Ok(tasks)
 }
 
-fn parse_task_line(record: &StringRecord) -> Result<Task, CupError> {
+fn parse_task_line(record: &StringRecord) -> Result<Task, Error> {
     if record.is_empty() {
         return Err(ParseIssue::new("Empty task line").into());
     }
@@ -87,7 +87,7 @@ fn parse_task_line(record: &StringRecord) -> Result<Task, CupError> {
     })
 }
 
-fn parse_options_line(record: &StringRecord) -> Result<TaskOptions, CupError> {
+fn parse_options_line(record: &StringRecord) -> Result<TaskOptions, Error> {
     // Options,NoStart=12:34:56,TaskTime=01:45:12,WpDis=False,NearDis=0.7km,NearAlt=300.0m
     let mut options = TaskOptions {
         no_start: None,
@@ -125,7 +125,7 @@ fn parse_options_line(record: &StringRecord) -> Result<TaskOptions, CupError> {
     Ok(options)
 }
 
-fn parse_obszone_line(record: &StringRecord) -> Result<ObservationZone, CupError> {
+fn parse_obszone_line(record: &StringRecord) -> Result<ObservationZone, Error> {
     // ObsZone=0,Style=2,R1=400m,A1=180,Line=1
     let mut index = None;
     let mut style = None;
@@ -171,7 +171,7 @@ fn parse_obszone_line(record: &StringRecord) -> Result<ObservationZone, CupError
     })
 }
 
-fn parse_starts_line(record: &StringRecord) -> Result<Vec<String>, CupError> {
+fn parse_starts_line(record: &StringRecord) -> Result<Vec<String>, Error> {
     // STARTS=Celovec,Hodos,Ratitovec,Jamnik
     Ok(record
         .iter()
@@ -192,7 +192,7 @@ fn parse_starts_line(record: &StringRecord) -> Result<Vec<String>, CupError> {
 fn parse_inline_waypoint_line_with_index(
     record: &StringRecord,
     column_map: &ColumnMap,
-) -> Result<(usize, Waypoint), CupError> {
+) -> Result<(usize, Waypoint), Error> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
 
     // Extract the point index
