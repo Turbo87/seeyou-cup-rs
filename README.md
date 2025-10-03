@@ -9,8 +9,9 @@ The SeeYou CUP format is widely used by flight planning software and GPS devices
 ## Features
 
 - **Parse CUP files** from strings, files, or any `Read` implementation
-- **Write CUP files** to strings, files, or any `Write` implementation  
+- **Write CUP files** to strings, files, or any `Write` implementation
 - **Multiple encoding support** (UTF-8 and Windows-1252)
+- **Lenient parsing** - Skips malformed waypoints and continues parsing, with detailed warnings
 - **Full waypoint support** including coordinates, elevations, runway information, and descriptions
 - **Task parsing** with observation zones and task options
 
