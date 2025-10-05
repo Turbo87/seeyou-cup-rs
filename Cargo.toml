@@ -1,6 +1,6 @@
 [package]
 name = "seeyou-cup"
-version = "0.1.0"
+version = "0.2.0"
 description = "A Rust library for parsing and writing SeeYou CUP files, commonly used in aviation and gliding for waypoint and task data"
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/Turbo87/seeyou-cup-rs"
