@@ -16,3 +16,9 @@ thiserror = "2.0.17"
 claims = "=0.8.0"
 insta = "=1.43.2"
 proptest = "=1.8.0"
+
+[package.metadata.release]
+pre-release-commit-message = "Release v{{version}}"
+tag-message = ""
+# Disable `cargo publish` since we use CI for publishing
+publish = false
