@@ -1,10 +1,10 @@
 use claims::assert_ok;
 use insta::assert_snapshot;
-use seeyou_cup::CupEncoding::{self, Utf8, Windows1252};
+use seeyou_cup::Encoding::{self, Utf8, Windows1252};
 use seeyou_cup::CupFile;
 use std::path::{Path, PathBuf};
 
-const FIXTURES: [(&str, CupEncoding); 4] = [
+const FIXTURES: [(&str, Encoding); 4] = [
     ("2018_schwarzwald_landefelder.cup", Utf8),
     ("2018_Hotzenwaldwettbewerb_V3.cup", Windows1252),
     ("709-km-Dreieck-DMSt-Aachen-Stolberg-TV.cup", Utf8),

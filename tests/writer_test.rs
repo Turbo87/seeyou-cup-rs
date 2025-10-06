@@ -1,7 +1,7 @@
 use claims::{assert_ok, assert_some_eq};
 use insta::assert_snapshot;
 use seeyou_cup::{
-    CupEncoding, CupFile, Distance, Elevation, ObsZoneStyle, ObservationZone, RunwayDimension,
+    Encoding, CupFile, Distance, Elevation, ObsZoneStyle, ObservationZone, RunwayDimension,
     Task, TaskOptions, Waypoint, WaypointStyle,
 };
 use std::io::Cursor;
@@ -504,13 +504,13 @@ fn test_encoding_windows1252_roundtrip() {
     });
 
     let mut buffer = Vec::new();
-    assert_ok!(cup_file.to_writer_with_encoding(&mut buffer, CupEncoding::Windows1252));
+    assert_ok!(cup_file.to_writer_with_encoding(&mut buffer, Encoding::Windows1252));
 
     // Parse it back to verify it worked
     let cursor = Cursor::new(buffer);
     let (parsed, warnings) = assert_ok!(CupFile::from_reader_with_encoding(
         cursor,
-        CupEncoding::Windows1252
+        Encoding::Windows1252
     ));
     assert_eq!(parsed.waypoints.len(), 1);
     assert_eq!(parsed.waypoints[0].name, "Zürich");

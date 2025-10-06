@@ -3,13 +3,13 @@ mod column_map;
 mod task;
 mod waypoint;
 
-use crate::CupEncoding;
+use crate::Encoding;
 use crate::CupFile;
 use crate::error::{Error, ParseIssue};
 use crate::parser::column_map::ColumnMap;
 use crate::parser::task::parse_tasks;
 use crate::parser::waypoint::parse_waypoints;
-use encoding_rs::{Encoding, UTF_8, WINDOWS_1252};
+use encoding_rs::{Encoding as EncodingImpl, UTF_8, WINDOWS_1252};
 use std::borrow::Cow;
 use std::io::Read;
 
@@ -17,7 +17,7 @@ pub const TASK_SEPARATOR: &str = "-----Related Tasks-----";
 
 pub fn parse<R: Read>(
     mut reader: R,
-    encoding: Option<CupEncoding>,
+    encoding: Option<Encoding>,
 ) -> Result<(CupFile, Vec<ParseIssue>), Error> {
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes)?;
@@ -30,10 +30,10 @@ pub fn parse<R: Read>(
     parse_content(&content)
 }
 
-fn decode_with_encoding(bytes: &[u8], encoding: CupEncoding) -> Result<Cow<'_, str>, Error> {
-    let encoding_impl: &'static Encoding = match encoding {
-        CupEncoding::Utf8 => UTF_8,
-        CupEncoding::Windows1252 => WINDOWS_1252,
+fn decode_with_encoding(bytes: &[u8], encoding: Encoding) -> Result<Cow<'_, str>, Error> {
+    let encoding_impl: &'static EncodingImpl = match encoding {
+        Encoding::Utf8 => UTF_8,
+        Encoding::Windows1252 => WINDOWS_1252,
     };
 
     let (content, _, _had_errors) = encoding_impl.decode(bytes);

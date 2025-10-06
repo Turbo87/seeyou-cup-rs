@@ -85,13 +85,13 @@ let cup_string = cup_file.to_string().unwrap();
 ### Working with different encodings
 
 ```rust,no_run
-use seeyou_cup::{CupFile, CupEncoding};
+use seeyou_cup::{CupFile, Encoding};
 
 // Read with specific encoding
-let (cup_file, warnings) = CupFile::from_path_with_encoding("waypoints.cup", CupEncoding::Windows1252).unwrap();
+let (cup_file, warnings) = CupFile::from_path_with_encoding("waypoints.cup", Encoding::Windows1252).unwrap();
 
 // Write with specific encoding
-cup_file.to_path_with_encoding("output.cup", CupEncoding::Utf8).unwrap();
+cup_file.to_path_with_encoding("output.cup", Encoding::Utf8).unwrap();
 ```
 
 ## License
