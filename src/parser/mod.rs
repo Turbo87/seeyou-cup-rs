@@ -3,9 +3,9 @@ mod column_map;
 mod task;
 mod waypoint;
 
-use crate::Encoding;
 use crate::CupFile;
-use crate::error::{Error, ParseIssue};
+use crate::Encoding;
+use crate::error::{Error, ParseIssue, Warning};
 use crate::parser::column_map::ColumnMap;
 use crate::parser::task::parse_tasks;
 use crate::parser::waypoint::parse_waypoints;
@@ -18,7 +18,7 @@ pub const TASK_SEPARATOR: &str = "-----Related Tasks-----";
 pub fn parse<R: Read>(
     mut reader: R,
     encoding: Option<Encoding>,
-) -> Result<(CupFile, Vec<ParseIssue>), Error> {
+) -> Result<(CupFile, Vec<Warning>), Error> {
     let mut bytes = Vec::new();
     reader.read_to_end(&mut bytes)?;
 
@@ -52,7 +52,7 @@ fn decode_auto(bytes: &[u8]) -> Result<Cow<'_, str>, Error> {
     }
 }
 
-fn parse_content(content: &str) -> Result<(CupFile, Vec<ParseIssue>), Error> {
+fn parse_content(content: &str) -> Result<(CupFile, Vec<Warning>), Error> {
     let content = content.trim();
     if content.is_empty() {
         return Err(ParseIssue::new("Empty file").into());

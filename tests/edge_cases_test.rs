@@ -60,7 +60,7 @@ fn test_malformed_csv_unclosed_quotes() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid latitude format: '' (expected 9 characters, got 0)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid latitude format: '' (expected 9 characters, got 0)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -71,7 +71,7 @@ fn test_truncated_file_incomplete_row() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid elevation: ''", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid elevation: ''", line: Some(2) })]"#);
 }
 
 #[test]

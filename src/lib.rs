@@ -6,7 +6,7 @@ pub mod spec;
 mod types;
 mod writer;
 
-pub use error::{Error, ParseIssue};
+pub use error::{Error, Warning};
 pub use types::*;
 
 use std::fs::File;
@@ -33,18 +33,18 @@ pub struct CupFile {
 }
 
 impl CupFile {
-    pub fn from_reader<R: Read>(reader: R) -> Result<(Self, Vec<ParseIssue>), Error> {
+    pub fn from_reader<R: Read>(reader: R) -> Result<(Self, Vec<Warning>), Error> {
         parser::parse(reader, None)
     }
 
     pub fn from_reader_with_encoding<R: Read>(
         reader: R,
         encoding: Encoding,
-    ) -> Result<(Self, Vec<ParseIssue>), Error> {
+    ) -> Result<(Self, Vec<Warning>), Error> {
         parser::parse(reader, Some(encoding))
     }
 
-    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<(Self, Vec<ParseIssue>), Error> {
+    pub fn from_path<P: AsRef<Path>>(path: P) -> Result<(Self, Vec<Warning>), Error> {
         let file = File::open(path)?;
         Self::from_reader(file)
     }
@@ -52,14 +52,14 @@ impl CupFile {
     pub fn from_path_with_encoding<P: AsRef<Path>>(
         path: P,
         encoding: Encoding,
-    ) -> Result<(Self, Vec<ParseIssue>), Error> {
+    ) -> Result<(Self, Vec<Warning>), Error> {
         let file = File::open(path)?;
         Self::from_reader_with_encoding(file, encoding)
     }
 
-    // The trait can't be implemented for `(Self, Vec<ParseIssue>)`
+    // The trait can't be implemented for `(Self, Vec<Warning>)`
     #[allow(clippy::should_implement_trait)]
-    pub fn from_str(s: &str) -> Result<(Self, Vec<ParseIssue>), Error> {
+    pub fn from_str(s: &str) -> Result<(Self, Vec<Warning>), Error> {
         Self::from_reader(s.as_bytes())
     }
 

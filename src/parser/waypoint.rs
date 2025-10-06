@@ -2,13 +2,13 @@ use crate::error::ParseIssue;
 use crate::parser::TASK_SEPARATOR;
 use crate::parser::basics::{parse_latitude, parse_longitude};
 use crate::parser::column_map::ColumnMap;
-use crate::{Error, Waypoint, WaypointStyle};
+use crate::{Error, Warning, Waypoint, WaypointStyle};
 use csv::StringRecord;
 
 pub fn parse_waypoints(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
-    warnings: &mut Vec<ParseIssue>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<Vec<Waypoint>, Error> {
     let mut waypoints = Vec::new();
     for result in csv_iter {
@@ -23,7 +23,7 @@ pub fn parse_waypoints(
             Ok(waypoint) => waypoints.push(waypoint),
             Err(error) => {
                 let message = format!("Skipped waypoint: {error}");
-                warnings.push(ParseIssue::new(message).with_record(&record))
+                warnings.push(ParseIssue::new(message).with_record(&record).into())
             }
         }
     }
@@ -34,7 +34,7 @@ pub fn parse_waypoints(
 pub fn parse_waypoint(
     column_map: &ColumnMap,
     record: &StringRecord,
-    warnings: &mut Vec<ParseIssue>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<Waypoint, String> {
     let name = record.get(column_map.name).unwrap_or_default();
     if name.is_empty() {
@@ -63,7 +63,7 @@ pub fn parse_waypoint(
         Some(style) => style,
         None => {
             let message = format!("Ignored field: Unknown waypoint style: '{style_str}'");
-            warnings.push(ParseIssue::new(message).with_record(record));
+            warnings.push(ParseIssue::new(message).with_record(record).into());
             WaypointStyle::Unknown
         }
     };
@@ -74,7 +74,7 @@ pub fn parse_waypoint(
     let runway_direction = runway_direction
         .inspect_err(|error| {
             let message = format!("Ignored field: {error}");
-            warnings.push(ParseIssue::new(message).with_record(record))
+            warnings.push(ParseIssue::new(message).with_record(record).into())
         })
         .unwrap_or_default();
 
@@ -84,7 +84,7 @@ pub fn parse_waypoint(
     let runway_length = runway_length
         .inspect_err(|error| {
             let message = format!("Ignored field: {error}");
-            warnings.push(ParseIssue::new(message).with_record(record))
+            warnings.push(ParseIssue::new(message).with_record(record).into())
         })
         .unwrap_or_default();
 
@@ -94,7 +94,7 @@ pub fn parse_waypoint(
     let runway_width = runway_width
         .inspect_err(|error| {
             let message = format!("Ignored field: {error}");
-            warnings.push(ParseIssue::new(message).with_record(record))
+            warnings.push(ParseIssue::new(message).with_record(record).into())
         })
         .unwrap_or_default();
 

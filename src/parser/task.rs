@@ -1,13 +1,13 @@
 use crate::error::ParseIssue;
 use crate::parser::column_map::ColumnMap;
 use crate::parser::waypoint;
-use crate::{Error, ObsZoneStyle, ObservationZone, Task, TaskOptions, Waypoint};
+use crate::{Error, ObsZoneStyle, ObservationZone, Task, TaskOptions, Warning, Waypoint};
 use csv::StringRecord;
 
 pub fn parse_tasks(
     csv_iter: &mut csv::StringRecordsIter<&[u8]>,
     column_map: &ColumnMap,
-    warnings: &mut Vec<ParseIssue>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<Vec<Task>, Error> {
     let mut tasks = Vec::new();
 
@@ -193,7 +193,7 @@ fn parse_starts_line(record: &StringRecord) -> Result<Vec<String>, Error> {
 fn parse_inline_waypoint_line_with_index(
     record: &StringRecord,
     column_map: &ColumnMap,
-    warnings: &mut Vec<ParseIssue>,
+    warnings: &mut Vec<Warning>,
 ) -> Result<(usize, Waypoint), Error> {
     // Format: Point=1,"Point_3",PNT_3,,4627.136N,01412.856E,0.0m,1,,,,,,,
 

@@ -113,7 +113,7 @@ fn test_empty_name_should_error() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Name field cannot be empty", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Name field cannot be empty", line: Some(2) })]"#);
 }
 
 #[test]
@@ -125,7 +125,7 @@ fn test_invalid_latitude_too_short() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid latitude format: '5147.8N' (expected 9 characters, got 7)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid latitude format: '5147.8N' (expected 9 characters, got 7)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -137,7 +137,7 @@ fn test_invalid_latitude_too_long() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid latitude format: '51247.809N' (unexpected character)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid latitude format: '51247.809N' (unexpected character)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -148,7 +148,7 @@ fn test_invalid_latitude_hemisphere() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid latitude format: '5147.809X' (unexpected character)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid latitude format: '5147.809X' (unexpected character)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -159,7 +159,7 @@ fn test_latitude_out_of_range_positive() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Latitude out of range: '91' (must be between -90 and 90)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Latitude out of range: '91' (must be between -90 and 90)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -170,7 +170,7 @@ fn test_latitude_out_of_range_negative() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Latitude out of range: '-91' (must be between -90 and 90)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Latitude out of range: '-91' (must be between -90 and 90)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -182,7 +182,7 @@ fn test_invalid_longitude_too_short() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid longitude format: '0405.0W' (expected 10 characters, got 7)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid longitude format: '0405.0W' (expected 10 characters, got 7)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -194,7 +194,7 @@ fn test_invalid_longitude_too_long() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid longitude format: '000405.003W' (unexpected character)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid longitude format: '000405.003W' (unexpected character)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -205,7 +205,7 @@ fn test_invalid_longitude_hemisphere() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid longitude format: '00405.003Y' (unexpected character)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid longitude format: '00405.003Y' (unexpected character)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -216,7 +216,7 @@ fn test_longitude_out_of_range_positive() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Longitude out of range: '181' (must be between -180 and 180)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Longitude out of range: '181' (must be between -180 and 180)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -227,7 +227,7 @@ fn test_longitude_out_of_range_negative() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Longitude out of range: '-181' (must be between -180 and 180)", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Longitude out of range: '-181' (must be between -180 and 180)", line: Some(2) })]"#);
 }
 
 #[test]
@@ -318,7 +318,7 @@ fn test_invalid_numeric_elevation() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid elevation unit: 'invalid'", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid elevation unit: 'invalid'", line: Some(2) })]"#);
 }
 
 #[test]
@@ -329,7 +329,7 @@ fn test_invalid_elevation_unit() {
     let (cup, warnings) = assert_ok!(CupFile::from_str(input));
     assert_eq!(cup.waypoints.len(), 0);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Skipped waypoint: Invalid elevation: '500km'", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Skipped waypoint: Invalid elevation: '500km'", line: Some(2) })]"#);
 }
 
 #[test]
@@ -422,7 +422,7 @@ fn test_invalid_numeric_runway_direction() {
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].runway_direction, None);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Ignored field: Invalid runway direction: 'abc'", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Ignored field: Invalid runway direction: 'abc'", line: Some(2) })]"#);
 }
 
 #[test]
@@ -473,7 +473,7 @@ fn test_invalid_numeric_runway_length() {
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].runway_length, None);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Ignored field: Invalid runway dimension unit: 'invalid'", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Ignored field: Invalid runway dimension unit: 'invalid'", line: Some(2) })]"#);
 }
 
 #[test]
@@ -485,7 +485,7 @@ fn test_invalid_runway_dimension_unit() {
     assert_eq!(cup.waypoints.len(), 1);
     assert_eq!(cup.waypoints[0].runway_length, None);
     assert_eq!(warnings.len(), 1);
-    insta::assert_compact_debug_snapshot!(warnings, @r#"[ParseIssue { message: "Ignored field: Invalid runway dimension: '1130km'", line: Some(2) }]"#);
+    insta::assert_compact_debug_snapshot!(warnings, @r#"[Warning(ParseIssue { message: "Ignored field: Invalid runway dimension: '1130km'", line: Some(2) })]"#);
 }
 
 #[test]

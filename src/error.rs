@@ -23,6 +23,25 @@ impl From<ParseIssue> for Error {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Warning(ParseIssue);
+
+impl Warning {
+    pub fn message(&self) -> &str {
+        &self.0.message
+    }
+
+    pub fn line(&self) -> Option<u64> {
+        self.0.line
+    }
+}
+
+impl From<ParseIssue> for Warning {
+    fn from(issue: ParseIssue) -> Self {
+        Warning(issue)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseIssue {
     message: String,
     line: Option<u64>,
@@ -39,13 +58,5 @@ impl ParseIssue {
         let message = self.message;
         let line = record.position().map(|p| p.line());
         Self { message, line }
-    }
-
-    pub fn message(&self) -> &str {
-        &self.message
-    }
-
-    pub fn line(&self) -> Option<u64> {
-        self.line
     }
 }
