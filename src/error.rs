@@ -22,7 +22,7 @@ impl From<ParseIssue> for Error {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq)]
 pub struct ParseIssue {
     message: String,
     line: Option<u64>,

@@ -15,7 +15,7 @@ use std::path::Path;
 use std::str::FromStr;
 
 /// Character encoding for CUP files
-#[derive(Debug, Clone, Copy)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CupEncoding {
     /// UTF-8 encoding
     Utf8,
@@ -24,7 +24,7 @@ pub enum CupEncoding {
 }
 
 /// SeeYou CUP file representation
-#[derive(Debug, Default)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct CupFile {
     /// Waypoints defined in the file
     pub waypoints: Vec<Waypoint>,

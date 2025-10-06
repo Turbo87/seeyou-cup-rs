@@ -2,7 +2,7 @@ use crate::types::waypoint::Waypoint;
 use crate::{Distance, Elevation};
 
 /// Task definition from a CUP file
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Task {
     /// Task description
     pub description: Option<String>,
@@ -19,7 +19,7 @@ pub struct Task {
 }
 
 /// Task options and constraints
-#[derive(Debug)]
+#[derive(Debug, Clone, Default, PartialEq)]
 pub struct TaskOptions {
     /// Opening of start line
     pub no_start: Option<String>,
@@ -46,7 +46,7 @@ pub struct TaskOptions {
 }
 
 /// Observation zone definition for task points
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct ObservationZone {
     /// Consecutive number of a waypoint (0 = Start)
     pub index: u32,

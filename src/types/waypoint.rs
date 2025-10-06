@@ -1,7 +1,7 @@
 use crate::{Elevation, RunwayDimension};
 
 /// Waypoint information from a CUP file
-#[derive(Debug)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Waypoint {
     /// Waypoint name
     pub name: String,

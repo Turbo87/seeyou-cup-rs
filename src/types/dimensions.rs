@@ -11,7 +11,7 @@ macro_rules! dimension_enum {
         ]
     ) => {
         $(#[$meta])*
-        #[derive(Debug, Clone, PartialEq)]
+        #[derive(Debug, Clone, PartialEq, PartialOrd)]
         pub enum $name {
             $( $variant(f64) ),*
         }
