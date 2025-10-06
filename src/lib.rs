@@ -6,10 +6,9 @@ pub mod spec;
 mod types;
 mod writer;
 
-pub use error::Error;
+pub use error::{Error, ParseIssue};
 pub use types::*;
 
-use crate::error::ParseIssue;
 use std::fs::File;
 use std::io::{Read, Write};
 use std::path::Path;
